@@ -47,10 +47,10 @@ final class ItemQuickGestureTests: XCTestCase {
             precise: true, hasPhase: true, momentum: false))
         var daycast = ItemQuickGesture(direction: .right, input: .swipe)
         daycast.update(x: delta.x, y: 0)
-        XCTAssertEqual(daycast.finish(insidePanel: true), .quickAction)
+        XCTAssertEqual(daycast.finish(), .quickAction)
         var past = ItemQuickGesture(direction: .up, input: .swipe)
         past.update(x: 0, y: delta.y)
-        XCTAssertEqual(past.finish(insidePanel: true), .quickAction)
+        XCTAssertEqual(past.finish(), .quickAction)
     }
 
     func testDragNeedsDirectionAndReleaseThreshold() {
@@ -64,15 +64,15 @@ final class ItemQuickGestureTests: XCTestCase {
         XCTAssertFalse(gesture.armed)
         gesture.update(x: 64, y: 4)
         XCTAssertTrue(gesture.armed)
-        XCTAssertEqual(gesture.finish(insidePanel: true), .quickAction)
-        XCTAssertEqual(gesture.finish(insidePanel: true), .none)
+        XCTAssertEqual(gesture.finish(), .quickAction)
+        XCTAssertEqual(gesture.finish(), .none)
     }
 
-    func testUpwardPastDragAndOutsideCancellation() {
+    func testUpwardPastDragCommits() {
         var gesture = ItemQuickGesture(direction: .up, input: .drag)
         gesture.update(x: 10, y: 80)
         XCTAssertTrue(gesture.armed)
-        XCTAssertEqual(gesture.finish(insidePanel: false), .none)
+        XCTAssertEqual(gesture.finish(), .quickAction)
     }
 
     func testReturningBelowThresholdDisarms() {
@@ -81,7 +81,7 @@ final class ItemQuickGestureTests: XCTestCase {
         XCTAssertTrue(gesture.armed)
         gesture.update(x: 0, y: 45)
         XCTAssertFalse(gesture.armed)
-        XCTAssertEqual(gesture.finish(insidePanel: true), .none)
+        XCTAssertEqual(gesture.finish(), .none)
     }
 
     func testBrowsingNeverTurnsIntoAnAction() {
@@ -91,7 +91,7 @@ final class ItemQuickGestureTests: XCTestCase {
             XCTAssertEqual(gesture.intent, .browsing)
             gesture.update(x: direction == .right ? 150 : 20, y: direction == .right ? 20 : 150)
             XCTAssertFalse(gesture.armed)
-            XCTAssertEqual(gesture.finish(insidePanel: true), .none)
+            XCTAssertEqual(gesture.finish(), .none)
         }
     }
 
@@ -99,7 +99,7 @@ final class ItemQuickGestureTests: XCTestCase {
         var gesture = ItemQuickGesture(direction: .right, input: .drag)
         gesture.update(x: -20, y: 1)
         gesture.update(x: 100, y: 1)
-        XCTAssertEqual(gesture.finish(insidePanel: true), .none)
+        XCTAssertEqual(gesture.finish(), .none)
     }
 
     func testDiagonalMotionMustResolveToAnAxis() {
@@ -118,7 +118,7 @@ final class ItemQuickGestureTests: XCTestCase {
         gesture.update(x: 0, y: 79)
         XCTAssertFalse(gesture.armed)
         gesture.update(x: 0, y: 80)
-        XCTAssertEqual(gesture.finish(insidePanel: true), .quickAction)
+        XCTAssertEqual(gesture.finish(), .quickAction)
     }
 
     func testCancellationCannotBeRearmed() {
@@ -127,29 +127,29 @@ final class ItemQuickGestureTests: XCTestCase {
         gesture.cancel()
         gesture.update(x: 120, y: 0)
         XCTAssertFalse(gesture.armed)
-        XCTAssertEqual(gesture.finish(insidePanel: true, overGroup: true), .none)
+        XCTAssertEqual(gesture.finish(overGroup: true), .none)
     }
 
     func testGroupDropTakesPriorityOverQuickAction() {
         var gesture = ItemQuickGesture(direction: .up, input: .drag)
         gesture.update(x: 0, y: 100)
-        XCTAssertEqual(gesture.finish(insidePanel: true, overGroup: true), .group)
-        XCTAssertEqual(gesture.finish(insidePanel: true), .none)
+        XCTAssertEqual(gesture.finish(overGroup: true), .group)
+        XCTAssertEqual(gesture.finish(), .none)
     }
 
     func testOtherDragDirectionsCanStillReachGroups() {
         var gesture = ItemQuickGesture(direction: .up, input: .drag)
         gesture.update(x: 100, y: 10)
-        XCTAssertEqual(gesture.finish(insidePanel: true, overGroup: true), .group)
+        XCTAssertEqual(gesture.finish(overGroup: true), .group)
         var click = ItemQuickGesture(direction: .up, input: .drag)
         click.update(x: 2, y: 2)
-        XCTAssertEqual(click.finish(insidePanel: true, overGroup: true), .none)
+        XCTAssertEqual(click.finish(overGroup: true), .none)
     }
 
     func testSwipeCannotDropIntoGroup() {
         var gesture = ItemQuickGesture(direction: .up, input: .swipe)
         gesture.update(x: 0, y: 90)
-        XCTAssertEqual(gesture.finish(insidePanel: true, overGroup: true), .quickAction)
+        XCTAssertEqual(gesture.finish(overGroup: true), .quickAction)
     }
 
     func testInputModesAreIndependent() {

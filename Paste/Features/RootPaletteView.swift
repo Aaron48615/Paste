@@ -445,6 +445,13 @@ private struct PastPaletteView: View {
             header
             shelf
         }
+        .overlay(alignment: .top) {
+            if vm.groupDragActive, groupDialog == nil {
+                dragGroupPicker
+                    .padding(.horizontal, 20)
+                    .padding(.top, Theme.Size.shelfHeaderHeight)
+            }
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color.clear)
         .overlay {
@@ -517,21 +524,12 @@ private struct PastPaletteView: View {
                                 }
                                 .controlGroupStyle(.palette)
                             }
-                            .dropDestination(for: String.self) { values, _ in
-                                guard let value = values.first, let itemID = UUID(uuidString: value)
-                                else { return false }
+                            .modifier(PaletteGroupDropTarget(title: group.name, enabled: groupDialog == nil) { value in
+                                guard let itemID = UUID(uuidString: value),
+                                      vm.results.contains(where: { $0.id == itemID }) else { return false }
                                 store.setItem(itemID, in: group.id, member: true)
                                 return true
-                            }
-                            .background(PaletteItemInteractionRegion(
-                                enabled: groupDialog == nil,
-                                acceptDrop: { value in
-                                    guard let itemID = UUID(uuidString: value),
-                                          vm.results.contains(where: { $0.id == itemID }) else { return false }
-                                    store.setItem(itemID, in: group.id, member: true)
-                                    return true
-                                }
-                            ))
+                            })
                         }
                     }
                     .padding(.vertical, 4)
@@ -553,6 +551,52 @@ private struct PastPaletteView: View {
         }
         .padding(.horizontal, 20)
         .frame(height: Theme.Size.shelfHeaderHeight)
+    }
+
+    /// Shown by the same event gateway that owns the drag, so the choices remain
+    /// available while the pointer moves sideways and never start a competing drag.
+    private var dragGroupPicker: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Drag to Choose a Pinboard", systemImage: "folder.badge.plus")
+                .font(.callout.weight(.semibold))
+            if store.groups.isEmpty {
+                Text("Create a pinboard with + first")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            } else {
+                ScrollView(.vertical) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
+                        ForEach(store.groups) { group in
+                            HStack(spacing: 8) {
+                                Circle().fill(group.color.swiftUIColor).frame(width: 8, height: 8)
+                                Text(group.name).lineLimit(1)
+                                Spacer(minLength: 0)
+                            }
+                            .font(.callout.weight(.medium))
+                            .padding(.horizontal, 14)
+                            .frame(height: 38)
+                            .background(Color.primary.opacity(0.05), in: Capsule())
+                            .modifier(PaletteGroupDropTarget(title: group.name, enabled: groupDialog == nil) { value in
+                                guard let itemID = UUID(uuidString: value),
+                                      vm.results.contains(where: { $0.id == itemID }) else { return false }
+                                store.setItem(itemID, in: group.id, member: true)
+                                return true
+                            })
+                        }
+                    }
+                }
+                .frame(maxHeight: 110)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16).strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5)
+                .allowsHitTesting(false)
+        }
+        .background(PaletteItemInteractionRegion(isGroupPicker: true))
+        .shadow(color: .black.opacity(0.15), radius: 12, y: 4)
     }
 
     private var searchControl: some View {
@@ -850,12 +894,6 @@ private struct ClipboardShelfCard: View {
             if !Task.isCancelled { characterCount = count }
         }
         .contextMenu { itemContextMenu }
-        .draggable(item.id.uuidString) {
-            Text(item.displayTitle(locale: settings.language.locale))
-                .lineLimit(1)
-                .padding(Theme.Spacing.md)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
-        }
         .onChange(of: isRenaming, initial: true) { _, renaming in
             guard renaming else { return }
             renameText = item.displayTitle(locale: settings.language.locale)

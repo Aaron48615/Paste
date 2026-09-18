@@ -184,3 +184,10 @@
 "Quick Action Failed" = "Quick Action Failed";
 "The image file is missing or unreadable." = "The image file is missing or unreadable.";
 "The link could not be opened in your default browser." = "The link could not be opened in your default browser.";
+"Release to Cancel" = "Release to Cancel";
+"Release to Add to “%@”" = "Release to Add to “%@”";
+"Drag to a Pinboard Above" = "Drag to a Pinboard Above";
+"Esc to Cancel" = "Esc to Cancel";
+
+"Drag to Choose a Pinboard" = "Drag to Choose a Pinboard";
+"Create a pinboard with + first" = "Create a pinboard with + first";

@@ -57,12 +57,12 @@ struct ItemQuickGesture {
             && along >= across * 1.5
     }
 
-    mutating func finish(insidePanel: Bool, overGroup: Bool = false) -> Outcome {
+    mutating func finish(overGroup: Bool = false) -> Outcome {
         guard !finished else { return .none }
         finished = true
         defer { armed = false }
         if input == .drag, moved, overGroup { return .group }
-        return insidePanel && armed ? .quickAction : .none
+        return armed ? .quickAction : .none
     }
 
     mutating func cancel() {

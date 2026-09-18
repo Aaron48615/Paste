@@ -184,3 +184,10 @@
 "Quick Action Failed" = "快捷操作失败";
 "The image file is missing or unreadable." = "图片文件不存在或无法读取。";
 "The link could not be opened in your default browser." = "无法在默认浏览器中打开此链接。";
+"Release to Cancel" = "松开取消";
+"Release to Add to “%@”" = "松开添加到「%@」";
+"Drag to a Pinboard Above" = "拖到上方分组以添加";
+"Esc to Cancel" = "Esc 取消";
+
+"Drag to Choose a Pinboard" = "拖到分组后松手添加";
+"Create a pinboard with + first" = "请先点击 + 新建分组";

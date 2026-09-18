@@ -126,6 +126,7 @@ final class PaletteViewModel: ObservableObject {
     @Published var followToken = UUID()
     @Published var pasteTarget: PasteTarget?
     @Published var imageQuickLookOpen = false
+    @Published var groupDragActive = false
     @Published var itemActionError: String?
     @Published private(set) var overlay: PaletteOverlay = .none {
         didSet {
