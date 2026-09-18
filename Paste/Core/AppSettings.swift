@@ -128,10 +128,14 @@ enum PinnedWindowOpacity {
 
 @MainActor
 final class AppSettings: ObservableObject {
-    private let defaults = UserDefaults.standard
+    private let defaults: UserDefaults
     private var reconcilingLaunchAtLogin = false
 
     private enum Key {
+        static let quickLinkEnabled = "quickLinkEnabled"
+        static let quickImageEnabled = "quickImageEnabled"
+        static let quickLinkGesture = "quickLinkGesture"
+        static let quickImageGesture = "quickImageGesture"
         static let clipboardRetention = "clipboardRetentionDays"
         static let clipboardDisabledApps = "clipboardDisabledApps"
         static let launchAtLogin = "launchAtLogin"
@@ -148,6 +152,27 @@ final class AppSettings: ObservableObject {
         static let animateMenuBarIconOnCopy = "animateMenuBarIconOnCopy"
         static let soundEffectsEnabled = "soundEffectsEnabled"
         static let copySoundEffect = "copySoundEffect"
+    }
+
+    @Published var quickLinkEnabled: Bool {
+        didSet { defaults.set(quickLinkEnabled, forKey: Key.quickLinkEnabled) }
+    }
+    @Published var quickImageEnabled: Bool {
+        didSet { defaults.set(quickImageEnabled, forKey: Key.quickImageEnabled) }
+    }
+    @Published var quickLinkGesture: ItemGestureMode {
+        didSet { defaults.set(quickLinkGesture.rawValue, forKey: Key.quickLinkGesture) }
+    }
+    @Published var quickImageGesture: ItemGestureMode {
+        didSet { defaults.set(quickImageGesture.rawValue, forKey: Key.quickImageGesture) }
+    }
+
+    func quickGestureMode(for kind: ClipboardItem.Kind) -> ItemGestureMode? {
+        switch kind {
+        case .link: quickLinkEnabled ? quickLinkGesture : nil
+        case .image: quickImageEnabled ? quickImageGesture : nil
+        default: nil
+        }
     }
 
     @Published var clipboardRetention: ClipboardRetention {
@@ -233,7 +258,14 @@ final class AppSettings: ObservableObject {
         PinnedWindowOpacity.alpha(from: pinnedWindowOpacity)
     }
 
-    init() {
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        quickLinkEnabled = defaults.object(forKey: Key.quickLinkEnabled) as? Bool ?? true
+        quickImageEnabled = defaults.object(forKey: Key.quickImageEnabled) as? Bool ?? true
+        quickLinkGesture = defaults.string(forKey: Key.quickLinkGesture)
+            .flatMap(ItemGestureMode.init(rawValue:)) ?? .drag
+        quickImageGesture = defaults.string(forKey: Key.quickImageGesture)
+            .flatMap(ItemGestureMode.init(rawValue:)) ?? .drag
         clipboardRetention =
             ClipboardRetention(rawValue: defaults.integer(forKey: Key.clipboardRetention))
             ?? .threeMonths

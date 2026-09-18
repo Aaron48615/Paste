@@ -4,6 +4,15 @@ import XCTest
 final class ClipboardTextClassifierTests: XCTestCase {
     // MARK: - Links
 
+    func testQuickOpenURLMatchesLinkClassification() {
+        XCTAssertEqual(ClipboardTextClassifier.linkURL(" \nhttps://example.com/a?b=c\n")?.absoluteString,
+                       "https://example.com/a?b=c")
+        for invalid in ["javascript:alert(1)", "file:///tmp/image.png", "https://", "example.com",
+                        "https://example.com\nhttps://other.example", "see https://example.com"] {
+            XCTAssertNil(ClipboardTextClassifier.linkURL(invalid))
+        }
+    }
+
     func testWholeStringHTTPURLIsLink() {
         XCTAssertEqual(ClipboardTextClassifier.kind(for: "https://example.com/a?b=c"), .link)
         XCTAssertEqual(ClipboardTextClassifier.kind(for: "http://example.com"), .link)

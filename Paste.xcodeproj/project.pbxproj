@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BC5200000000000000000009 /* PaletteItemInteractionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5200000000000000000008 /* PaletteItemInteractionTests.swift */; };
+		BC520000000000000000000A /* PaletteItemInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5200000000000000000002 /* PaletteItemInteraction.swift */; };
+		BC5200000000000000000004 /* ItemQuickGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5200000000000000000001 /* ItemQuickGesture.swift */; };
+		BC5200000000000000000005 /* PaletteItemInteraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5200000000000000000002 /* PaletteItemInteraction.swift */; };
+		BC5200000000000000000006 /* ItemQuickGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5200000000000000000001 /* ItemQuickGesture.swift */; };
+		BC5200000000000000000007 /* ItemQuickGestureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5200000000000000000003 /* ItemQuickGestureTests.swift */; };
+
 		BC5100000000000000000003 /* WindowPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5100000000000000000001 /* WindowPlacement.swift */; };
 		BC5100000000000000000004 /* WindowPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5100000000000000000001 /* WindowPlacement.swift */; };
 		BC5100000000000000000005 /* WindowPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5100000000000000000002 /* WindowPlacementTests.swift */; };
@@ -101,6 +108,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BC5200000000000000000008 /* PaletteItemInteractionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteItemInteractionTests.swift; sourceTree = "<group>"; };
+		BC5200000000000000000001 /* ItemQuickGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemQuickGesture.swift; sourceTree = "<group>"; };
+		BC5200000000000000000002 /* PaletteItemInteraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteItemInteraction.swift; sourceTree = "<group>"; };
+		BC5200000000000000000003 /* ItemQuickGestureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemQuickGestureTests.swift; sourceTree = "<group>"; };
+
 		BC5100000000000000000006 /* Paste.local.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Paste.local.entitlements; sourceTree = "<group>"; };
 		BC5100000000000000000001 /* WindowPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPlacement.swift; sourceTree = "<group>"; };
 		BC5100000000000000000002 /* WindowPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPlacementTests.swift; sourceTree = "<group>"; };
@@ -210,6 +222,7 @@
 		0A65AE99FE164989A5BC7C61 /* Clipboard */ = {
 			isa = PBXGroup;
 			children = (
+				BC5200000000000000000002 /* PaletteItemInteraction.swift */,
 				657D8CF150E57314AE8665E3 /* ClipboardView.swift */,
 				19FB08D4568B366C9339712C /* ImageQuickLook.swift */,
 				A1B2C3D4E5F60718293A4B5C /* PinnedImageWindow.swift */,
@@ -221,6 +234,7 @@
 			isa = PBXGroup;
 			children = (
 				BC5100000000000000000001 /* WindowPlacement.swift */,
+				BC5200000000000000000001 /* ItemQuickGesture.swift */,
 				0C1D141FBB730290AF3CA00C /* AppCore.swift */,
 				AA3100000000000000000002 /* PasteController.swift */,
 				AA3100000000000000000001 /* PasteControllerProtocol.swift */,
@@ -385,6 +399,8 @@
 			isa = PBXGroup;
 			children = (
 				BC5100000000000000000002 /* WindowPlacementTests.swift */,
+				BC5200000000000000000003 /* ItemQuickGestureTests.swift */,
+				BC5200000000000000000008 /* PaletteItemInteractionTests.swift */,
 				AA3200000000000000000011 /* TestHelpers.swift */,
 				AA3200000000000000000019 /* AppCoreStub.swift */,
 				AA3200000000000000000012 /* PinyinTests.swift */,
@@ -569,6 +585,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				BC5100000000000000000003 /* WindowPlacement.swift in Sources */,
+				BC5200000000000000000004 /* ItemQuickGesture.swift in Sources */,
+				BC5200000000000000000005 /* PaletteItemInteraction.swift in Sources */,
 				3967DE16A769A2E33CCD9692 /* AboutView.swift in Sources */,
 				316668E91BB14E5E55142438 /* AppCore.swift in Sources */,
 				AA3100000000000000000006 /* PasteController.swift in Sources */,
@@ -632,6 +650,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				BC5100000000000000000004 /* WindowPlacement.swift in Sources */,
+				BC5200000000000000000006 /* ItemQuickGesture.swift in Sources */,
+				BC5200000000000000000007 /* ItemQuickGestureTests.swift in Sources */,
+				BC5200000000000000000009 /* PaletteItemInteractionTests.swift in Sources */,
+				BC520000000000000000000A /* PaletteItemInteraction.swift in Sources */,
 				BC5100000000000000000005 /* WindowPlacementTests.swift in Sources */,
 				AA3200000000000000000021 /* ClipboardStore.swift in Sources */,
 				AA3200000000000000000022 /* ClipboardCapturePipeline.swift in Sources */,

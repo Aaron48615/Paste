@@ -164,3 +164,23 @@
 
 "RePaste" = "RePaste";
 "RePaste updates are not configured yet." = "RePaste 暂未配置自动更新。";
+
+/* Item quick gestures */
+"Quick Actions" = "快捷操作";
+"Quick Open Links" = "快捷访问链接";
+"Quick Pin Images" = "快捷钉图片";
+"Enabled" = "启用";
+"Gesture" = "操作方式";
+"Hold and Drag" = "按住拖动";
+"Two-Finger Swipe" = "双指滑动";
+"Drag and Swipe" = "两者都开启";
+"Direction" = "操作方向";
+"Daycast: move right. Past: move up. Release to perform the action. Dropping on a pinboard adds the item there." = "Daycast 向右，Past 向上，松手后执行。拖放到分组上时优先归组。";
+"Release to Add to Pinboard" = "松开添加到分组";
+"Release to Open Link" = "松开打开链接";
+"Release to Pin Image" = "松开钉到屏幕";
+"Drag Right for Quick Action" = "向右拖动以执行快捷操作";
+"Drag Up for Quick Action" = "向上拖动以执行快捷操作";
+"Quick Action Failed" = "快捷操作失败";
+"The image file is missing or unreadable." = "图片文件不存在或无法读取。";
+"The link could not be opened in your default browser." = "无法在默认浏览器中打开此链接。";

@@ -32,6 +32,20 @@ struct GeneralSettingsView: View {
 
             PreferencesDivider()
 
+            PreferencesSectionHeader(title: "Quick Actions")
+            quickActionSettings("Quick Open Links", enabled: $settings.quickLinkEnabled,
+                                mode: $settings.quickLinkGesture)
+            quickActionSettings("Quick Pin Images", enabled: $settings.quickImageEnabled,
+                                mode: $settings.quickImageGesture)
+            PreferencesRow(label: "Direction", alignment: .top) {
+                Text("Daycast: move right. Past: move up. Release to perform the action. Dropping on a pinboard adds the item there.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            PreferencesDivider()
+
             PreferencesRow(label: "Updates", alignment: .firstTextBaseline) {
                 if updateService.isConfigured {
                     Toggle(
@@ -50,6 +64,26 @@ struct GeneralSettingsView: View {
         }
         .onAppear {
             settings.launchAtLogin = LaunchAtLogin.isEnabled
+        }
+    }
+
+    private func quickActionSettings(
+        _ title: LocalizedStringKey, enabled: Binding<Bool>, mode: Binding<ItemGestureMode>
+    ) -> some View {
+        PreferencesRow(label: title, alignment: .top) {
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Enabled", isOn: enabled)
+                    .toggleStyle(.checkbox)
+                if enabled.wrappedValue {
+                    Picker("Gesture", selection: mode) {
+                        ForEach(ItemGestureMode.allCases) { option in
+                            Text(LocalizedStringKey(option.title)).tag(option)
+                        }
+                    }
+                    .labelsHidden()
+                    .accessibilityLabel(title)
+                }
+            }
         }
     }
 }

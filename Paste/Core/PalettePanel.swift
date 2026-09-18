@@ -7,6 +7,7 @@ import SwiftUI
 /// first responder, so embedded AppKit views and SwiftUI focus changes cannot disable commands.
 final class PalettePanel: NSPanel {
     private let visualStyle: PaletteVisualStyle
+    lazy var itemInteractions = PaletteItemInteractionController(panel: self, style: visualStyle)
     var onUserDragEnded: (() -> Void)?
     var auxiliaryInputActive = false
     weak var paletteViewModel: PaletteViewModel? {
@@ -29,11 +30,17 @@ final class PalettePanel: NSPanel {
     ]
 
     override func sendEvent(_ event: NSEvent) {
+        if itemInteractions.handle(event) { return }
         if event.type == .leftMouseDown || event.type == .rightMouseDown {
             commitRenameIfClickIsOutside(event)
         }
         if event.type == .keyDown, route(event) { return }
         super.sendEvent(event)
+    }
+
+    override func orderOut(_ sender: Any?) {
+        itemInteractions.cancel()
+        super.orderOut(sender)
     }
 
     private func route(_ event: NSEvent) -> Bool {

@@ -1480,12 +1480,16 @@ enum ClipboardTextClassifier {
 
     /// Whole clipboard string is a single http(s) URL (no surrounding prose).
     private static func isLink(_ text: String) -> Bool {
+        linkURL(text) != nil
+    }
+
+    static func linkURL(_ text: String) -> URL? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, !trimmed.contains(where: \.isWhitespace) else { return false }
+        guard !trimmed.isEmpty, !trimmed.contains(where: \.isWhitespace) else { return nil }
         guard let url = URL(string: trimmed), let scheme = url.scheme?.lowercased(),
             scheme == "http" || scheme == "https", url.host != nil
-        else { return false }
-        return true
+        else { return nil }
+        return url
     }
 
     private static func isCode(_ text: String) -> Bool {

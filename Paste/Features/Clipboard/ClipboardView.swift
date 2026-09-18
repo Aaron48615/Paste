@@ -169,6 +169,12 @@ private struct ClipboardTableRepresentable: NSViewRepresentable {
             tableView.dataSource = self
             tableView.delegate = self
             tableView.onRightClick = { [weak self] row in self?.rightClicked(row) }
+            tableView.interactionRegion.itemAtPoint = { [weak self, weak tableView] point in
+                guard let self, let tableView else { return nil }
+                let row = tableView.row(at: tableView.convert(point, from: nil))
+                guard self.rows.indices.contains(row), case .item(let item) = self.rows[row] else { return nil }
+                return item
+            }
 
             let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("Clipboard"))
             column.resizingMask = .autoresizingMask
@@ -265,6 +271,7 @@ private struct ClipboardTableRepresentable: NSViewRepresentable {
             }
             syncInlineRename(in: tableView)
             tableView.hoverEnabled = hoverEnabled
+            tableView.interactionRegion.enabled = hoverEnabled
             tableView.refreshHover()
             reportGeometry(scrolling: false)
         }
@@ -661,6 +668,7 @@ private final class ClipboardTableScrollView: NSScrollView {
 }
 
 private final class ClipboardTableView: NSTableView {
+    lazy var interactionRegion = PaletteItemRegion(view: self)
     private static let hoverIntentDelay: Duration = .milliseconds(200)
 
     var onRightClick: ((Int) -> Void)?
@@ -715,6 +723,7 @@ private final class ClipboardTableView: NSTableView {
 
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
+        (window as? PalettePanel)?.itemInteractions.register(interactionRegion)
         if window == nil {
             clearHover()
         }

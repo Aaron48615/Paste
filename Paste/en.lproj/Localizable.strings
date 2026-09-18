@@ -164,3 +164,23 @@
 
 "RePaste" = "RePaste";
 "RePaste updates are not configured yet." = "RePaste updates are not configured yet.";
+
+/* Item quick gestures */
+"Quick Actions" = "Quick Actions";
+"Quick Open Links" = "Quick Open Links";
+"Quick Pin Images" = "Quick Pin Images";
+"Enabled" = "Enabled";
+"Gesture" = "Gesture";
+"Hold and Drag" = "Hold and Drag";
+"Two-Finger Swipe" = "Two-Finger Swipe";
+"Drag and Swipe" = "Drag and Swipe";
+"Direction" = "Direction";
+"Daycast: move right. Past: move up. Release to perform the action. Dropping on a pinboard adds the item there." = "Daycast: move right. Past: move up. Release to perform the action. Dropping on a pinboard adds the item there.";
+"Release to Add to Pinboard" = "Release to Add to Pinboard";
+"Release to Open Link" = "Release to Open Link";
+"Release to Pin Image" = "Release to Pin Image";
+"Drag Right for Quick Action" = "Drag Right for Quick Action";
+"Drag Up for Quick Action" = "Drag Up for Quick Action";
+"Quick Action Failed" = "Quick Action Failed";
+"The image file is missing or unreadable." = "The image file is missing or unreadable.";
+"The link could not be opened in your default browser." = "The link could not be opened in your default browser.";

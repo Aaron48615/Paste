@@ -4,8 +4,32 @@ import SwiftUI
 
 struct RootPaletteView: View {
     let visualStyle: PaletteVisualStyle
+    @EnvironmentObject private var vm: PaletteViewModel
+    @ObservedObject private var settings = AppCore.shared.settings
 
     var body: some View {
+        content.overlay(alignment: .top) {
+            if let error = vm.itemActionError {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Quick Action Failed").font(.headline)
+                        Text(verbatim: error).font(.callout)
+                    }
+                    Spacer(minLength: 0)
+                    Button("OK") { vm.itemActionError = nil }
+                }
+                .padding(16)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .shadow(radius: 8)
+                .padding(12)
+            }
+        }
+        .environment(\.locale, settings.language.locale)
+    }
+
+    @ViewBuilder
+    private var content: some View {
         switch visualStyle {
         case .daycast:
             DaycastPaletteView()
@@ -499,6 +523,15 @@ private struct PastPaletteView: View {
                                 store.setItem(itemID, in: group.id, member: true)
                                 return true
                             }
+                            .background(PaletteItemInteractionRegion(
+                                enabled: groupDialog == nil,
+                                acceptDrop: { value in
+                                    guard let itemID = UUID(uuidString: value),
+                                          vm.results.contains(where: { $0.id == itemID }) else { return false }
+                                    store.setItem(itemID, in: group.id, member: true)
+                                    return true
+                                }
+                            ))
                         }
                     }
                     .padding(.vertical, 4)
@@ -607,6 +640,7 @@ private struct PastPaletteView: View {
                                 selected: vm.selectedID == item.id,
                                 selectedGroupID: vm.selectedGroupID,
                                 ordinal: index + 1,
+                                interactionsEnabled: groupDialog == nil,
                                 onSelect: { vm.select(item.id) },
                                 onCommitRename: vm.commitOpenRename
                             )
@@ -781,6 +815,7 @@ private struct ClipboardShelfCard: View {
     let selected: Bool
     let selectedGroupID: ClipboardGroup.ID?
     let ordinal: Int
+    let interactionsEnabled: Bool
     let onSelect: () -> Void
     let onCommitRename: (String) -> Void
 
@@ -799,6 +834,7 @@ private struct ClipboardShelfCard: View {
             cardContent
         }
         .buttonStyle(.plain)
+        .background(PaletteItemInteractionRegion(item: item, enabled: interactionsEnabled && !isRenaming))
         .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.shelfCard, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: Theme.Radius.shelfCard, style: .continuous)

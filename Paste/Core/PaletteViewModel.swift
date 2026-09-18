@@ -126,6 +126,7 @@ final class PaletteViewModel: ObservableObject {
     @Published var followToken = UUID()
     @Published var pasteTarget: PasteTarget?
     @Published var imageQuickLookOpen = false
+    @Published var itemActionError: String?
     @Published private(set) var overlay: PaletteOverlay = .none {
         didSet {
             if overlay.isOpen {
@@ -158,6 +159,40 @@ final class PaletteViewModel: ObservableObject {
     }
 
     var menuOpen: Bool { overlay.isMenu }
+
+    var itemInteractionsEnabled: Bool {
+        searchReady && !menuOpen && renamingID == nil && !imageQuickLookOpen && itemActionError == nil
+    }
+
+    func pasteItem(id: ClipboardItem.ID) {
+        guard itemInteractionsEnabled, let item = results.first(where: { $0.id == id }) else { return }
+        core.paste(item)
+    }
+
+    func performQuickAction(id: ClipboardItem.ID, input: ItemQuickGesture.Input) {
+        guard itemInteractionsEnabled, let item = results.first(where: { $0.id == id }),
+              core.settings.quickGestureMode(for: item.kind)?.allows(input) == true else { return }
+        let locale = core.settings.language.locale
+        switch item.kind {
+        case .image:
+            guard let url = core.clipboardStore.imageURL(for: item),
+                  FileManager.default.isReadableFile(atPath: url.path),
+                  NSImage(contentsOf: url) != nil else {
+                itemActionError = String(localized: "The image file is missing or unreadable.", locale: locale)
+                return
+            }
+            core.pinToScreen(item)
+        case .link:
+            guard let url = ClipboardTextClassifier.linkURL(item.text ?? ""),
+                  NSWorkspace.shared.open(url) else {
+                itemActionError = String(localized: "The link could not be opened in your default browser.", locale: locale)
+                return
+            }
+            core.hidePalette(restoreFocus: false)
+        default:
+            break
+        }
+    }
 
     /// At an empty query, Space is reserved for Quick Look instead of starting blank search text.
     var canToggleQuickLook: Bool {
@@ -203,6 +238,7 @@ final class PaletteViewModel: ObservableObject {
     }
 
     func prepare() {
+        itemActionError = nil
         searchTask?.cancel()
         overlay = .none
         renamingID = nil
@@ -269,6 +305,10 @@ final class PaletteViewModel: ObservableObject {
 
     @discardableResult
     func handle(_ command: PaletteCommand) -> Bool {
+        if itemActionError != nil {
+            if command == .cancel || command == .activate { itemActionError = nil }
+            return true
+        }
         switch command {
         case .move(let delta):
             if menuOpen {
