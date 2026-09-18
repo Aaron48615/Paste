@@ -61,77 +61,84 @@ private struct DaycastPaletteView: View {
 
         return GeometryReader { window in
             let compact = window.size.width < Theme.Size.daycastCompactWidth
-            Group {
-                if clips.isEmpty {
-                    EmptyResults(
-                        text: isQueryEmpty && vm.kindFilter == .all
-                            ? "Clipboard history is empty" : "No matching entries",
-                        systemImage: "magnifyingglass"
-                    )
-                } else {
-                    GeometryReader { content in
-                        let total = compact ? content.size.height : content.size.width
-                        let ratio = compact ? (verticalDragRatio ?? verticalRatio)
-                            : (horizontalDragRatio ?? horizontalRatio)
-                        let listLength = DaycastSplitLayout.listLength(
-                            total: total, ratio: ratio, compact: compact)
-                        let layout = compact
-                            ? AnyLayout(VStackLayout(spacing: 0))
-                            : AnyLayout(HStackLayout(spacing: 0))
-                        layout {
-                            ClipboardList(
-                                results: clips,
-                                selectedID: vm.selectedID,
-                                query: vm.query,
-                                scroll: scroll,
-                                hoverEnabled: !vm.menuOpen && !showRename,
-                                onSelect: { vm.select($0.id) },
-                                onActions: { item in vm.openActions(for: item.id) },
-                                renamingID: vm.renamingID,
-                                renameDraft: vm.renameDraft,
-                                onCommitRename: { vm.commitOpenRename($0) }
-                            )
-                            .frame(width: compact ? nil : listLength,
-                                   height: compact ? listLength : nil)
-                            DaycastSplitDivider(
-                                compact: compact, listLength: listLength,
-                                onChange: { length in
-                                    let value = DaycastSplitLayout.ratio(for: length, total: total, compact: compact)
-                                    if compact { verticalDragRatio = value } else { horizontalDragRatio = value }
-                                },
-                                onEnd: {
-                                    if compact, let value = verticalDragRatio {
-                                        verticalRatio = value
-                                        verticalDragRatio = nil
-                                    } else if !compact, let value = horizontalDragRatio {
-                                        horizontalRatio = value
-                                        horizontalDragRatio = nil
+            VStack(spacing: 0) {
+                header(compact: compact)
+                Group {
+                    if clips.isEmpty {
+                        EmptyResults(
+                            text: isQueryEmpty && vm.kindFilter == .all
+                                ? "Clipboard history is empty" : "No matching entries",
+                            systemImage: "magnifyingglass"
+                        )
+                    } else {
+                        GeometryReader { content in
+                            let total = compact ? content.size.height : content.size.width
+                            let ratio = compact ? (verticalDragRatio ?? verticalRatio)
+                                : (horizontalDragRatio ?? horizontalRatio)
+                            let listLength = DaycastSplitLayout.listLength(
+                                total: total, ratio: ratio, compact: compact)
+                            let layout = compact
+                                ? AnyLayout(VStackLayout(spacing: 0))
+                                : AnyLayout(HStackLayout(spacing: 0))
+                            layout {
+                                ClipboardList(
+                                    results: clips,
+                                    selectedID: vm.selectedID,
+                                    query: vm.query,
+                                    scroll: scroll,
+                                    hoverEnabled: !vm.menuOpen && !showRename,
+                                    onSelect: { vm.select($0.id) },
+                                    onActions: { item in vm.openActions(for: item.id) },
+                                    renamingID: vm.renamingID,
+                                    renameDraft: vm.renameDraft,
+                                    onCommitRename: { vm.commitOpenRename($0) }
+                                )
+                                .frame(width: compact ? content.size.width : listLength,
+                                       height: compact ? listLength : content.size.height)
+                                .clipped()
+                                DaycastSplitDivider(
+                                    compact: compact, listLength: listLength,
+                                    onChange: { length in
+                                        let value = DaycastSplitLayout.ratio(for: length, total: total, compact: compact)
+                                        if compact { verticalDragRatio = value } else { horizontalDragRatio = value }
+                                    },
+                                    onEnd: {
+                                        if compact, let value = verticalDragRatio {
+                                            verticalRatio = value
+                                            verticalDragRatio = nil
+                                        } else if !compact, let value = horizontalDragRatio {
+                                            horizontalRatio = value
+                                            horizontalDragRatio = nil
+                                        }
                                     }
+                                )
+                                .frame(width: compact ? nil : DaycastSplitLayout.dividerThickness,
+                                       height: compact ? DaycastSplitLayout.dividerThickness : nil)
+                                .help("Drag to resize list and preview")
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel("Resize list and preview")
+                                .accessibilityValue(Text("\(Int(listLength / max(1, DaycastSplitLayout.availableLength(total)) * 100))%"))
+                                .accessibilityAdjustableAction { direction in
+                                    let delta: CGFloat = direction == .increment ? 20 : -20
+                                    let value = DaycastSplitLayout.ratio(
+                                        for: listLength + delta, total: total, compact: compact)
+                                    if compact { verticalRatio = value } else { horizontalRatio = value }
                                 }
-                            )
-                            .frame(width: compact ? nil : DaycastSplitLayout.dividerThickness,
-                                   height: compact ? DaycastSplitLayout.dividerThickness : nil)
-                            .help("Drag to resize list and preview")
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel("Resize list and preview")
-                            .accessibilityValue(Text("\(Int(listLength / max(1, DaycastSplitLayout.availableLength(total)) * 100))%"))
-                            .accessibilityAdjustableAction { direction in
-                                let delta: CGFloat = direction == .increment ? 20 : -20
-                                let value = DaycastSplitLayout.ratio(
-                                    for: listLength + delta, total: total, compact: compact)
-                                if compact { verticalRatio = value } else { horizontalRatio = value }
+                                ClipboardPreview(item: selected, query: vm.query, compact: compact)
+                                    .frame(
+                                        width: compact ? content.size.width
+                                            : max(0, total - listLength - DaycastSplitLayout.dividerThickness),
+                                        height: compact ? max(0, total - listLength - DaycastSplitLayout.dividerThickness)
+                                            : content.size.height)
+                                    .clipped()
                             }
-                            ClipboardPreview(item: selected, query: vm.query, compact: compact)
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        }
-                        .onChange(of: compact) {
-                            scroll = ScrollIntent(kind: .follow)
+                            .onChange(of: compact) {
+                                scroll = ScrollIntent(kind: .follow)
+                            }
                         }
                     }
                 }
-            }
-            .safeAreaInset(edge: .top, spacing: 0) { header(compact: compact) }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 bottomBar(showActionGroup: selected != nil, compact: compact)
                     .allowsHitTesting(!showRename)
             }

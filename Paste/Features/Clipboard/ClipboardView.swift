@@ -33,7 +33,8 @@ struct ClipboardList: View {
             onGeometryChange: { geometry = $0 },
             onScrollActivity: { scrollActivity = UUID() }
         )
-        .edgeDissolve(state: geometry.dissolve)
+        // The list now ends at the bars; keep fades short enough for the compact pane.
+        .modifier(EdgeDissolveMask(externalState: geometry.dissolve, topFade: 16, bottomFade: 16))
         .thinScrollbar(metrics: geometry.scrollbar, scrollToken: scrollActivity)
     }
 }
@@ -857,8 +858,11 @@ private final class ClipboardTableView: NSTableView {
     private func pointerHitsTable(at point: NSPoint) -> Bool {
         guard let contentView = window?.contentView else { return false }
         let pointInWindow = convert(point, to: nil)
-        let pointInContent = contentView.convert(pointInWindow, from: nil)
-        var hitView = contentView.hitTest(pointInContent)
+        // NSView.hitTest expects a point in its superview's coordinates, not its
+        // own flipped coordinates. Mixing them mirrors the hit into the compact
+        // preview below the list, preventing hover selection on a cold open.
+        let pointInParent = contentView.superview?.convert(pointInWindow, from: nil) ?? pointInWindow
+        var hitView = contentView.hitTest(pointInParent)
         while let view = hitView {
             if view === self { return true }
             hitView = view.superview
@@ -1207,13 +1211,19 @@ struct ClipboardPreview: View {
             GeometryReader { geometry in
                 if compact {
                     ScrollView(.vertical) {
-                        previewBody(item, contentHeight: max(120, geometry.size.height * 0.65))
+                        previewBody(item, contentHeight: max(80, geometry.size.height * 0.6))
+                            .frame(width: geometry.size.width)
+                            .padding(.bottom, 12)
                     }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped()
                 } else {
                     previewBody(item, contentHeight: nil)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
                 }
             }
             .padding(.horizontal, 12)
+            .id(item.id)
             .task(id: item.id) {
                 await refreshCodeMarkdown(item)
             }
@@ -1228,6 +1238,7 @@ struct ClipboardPreview: View {
                 .frame(height: contentHeight)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             ClipboardInfoSection(item: item, imageURL: store.imageURL(for: item))
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -1286,10 +1297,8 @@ struct ClipboardPreview: View {
     }
 
     private func refreshCodeMarkdown(_ item: ClipboardItem) async {
-        guard item.kind == .code, let text = item.text, !text.isEmpty else {
-            codeRendersAsMarkdown = false
-            return
-        }
+        codeRendersAsMarkdown = false
+        guard item.kind == .code, let text = item.text, !text.isEmpty else { return }
         let renders = await Task.detached(priority: .utility) {
             ClipboardTextClassifier.isMarkdownArticle(text)
         }.value
