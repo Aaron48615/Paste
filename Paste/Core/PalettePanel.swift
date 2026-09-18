@@ -253,7 +253,7 @@ final class PalettePanel: NSPanel {
         super.init(
             contentRect: NSRect(
                 x: 0, y: 0, width: panelSize.width, height: panelSize.height),
-            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
+            styleMask: [.borderless, .resizable, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )

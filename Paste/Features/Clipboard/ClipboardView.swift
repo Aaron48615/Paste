@@ -1196,6 +1196,7 @@ struct ClipboardPreview: View {
 
     let item: ClipboardItem?
     var query: String = ""
+    var compact = false
     @EnvironmentObject private var store: ClipboardStore
     @EnvironmentObject private var vm: PaletteViewModel
     @ObservedObject private var settings = AppCore.shared.settings
@@ -1203,10 +1204,14 @@ struct ClipboardPreview: View {
 
     var body: some View {
         if let item {
-            VStack(alignment: .leading, spacing: 0) {
-                content(for: item)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                ClipboardInfoSection(item: item, imageURL: store.imageURL(for: item))
+            GeometryReader { geometry in
+                if compact {
+                    ScrollView(.vertical) {
+                        previewBody(item, contentHeight: max(120, geometry.size.height * 0.65))
+                    }
+                } else {
+                    previewBody(item, contentHeight: nil)
+                }
             }
             .padding(.horizontal, 12)
             .task(id: item.id) {
@@ -1214,6 +1219,15 @@ struct ClipboardPreview: View {
             }
         } else {
             Color.clear
+        }
+    }
+
+    private func previewBody(_ item: ClipboardItem, contentHeight: CGFloat?) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            content(for: item)
+                .frame(height: contentHeight)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            ClipboardInfoSection(item: item, imageURL: store.imageURL(for: item))
         }
     }
 

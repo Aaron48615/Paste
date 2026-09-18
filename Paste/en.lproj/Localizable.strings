@@ -157,3 +157,7 @@
 "音效2" = "音效2";
 "音效3" = "音效3";
 "音效4" = "音效4";
+
+/* Daycast split divider */
+"Resize list and preview" = "Resize list and preview";
+"Drag to resize list and preview" = "Drag to resize list and preview";

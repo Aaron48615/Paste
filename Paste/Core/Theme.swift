@@ -29,6 +29,12 @@ enum Theme {
     }
 
     enum Size {
+        static let daycastCompactWidth: CGFloat = 680
+
+        static func minimumPanelSize(for style: PaletteVisualStyle) -> CGSize {
+            style == .daycast ? CGSize(width: 420, height: 420) : CGSize(width: 600, height: 336)
+        }
+
         static let panelWidth: CGFloat = 750
         static let panelHeight: CGFloat = 475
         /// Fraction of the active screen's visible height between the top of the visible area and the palette's top edge; the window grows downward from this edge (Spotlight-style upper placement).

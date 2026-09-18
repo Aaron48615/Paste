@@ -5,6 +5,7 @@ import SwiftUI
 final class PaletteWindowController: NSObject, NSWindowDelegate {
     private unowned let core: AppCore
     private var panel: PalettePanel?
+    private let sizeStore = PaletteSizeStore()
     private var panelStyle: PaletteVisualStyle?
     private(set) var previousApp: NSRunningApplication?
 
@@ -76,6 +77,32 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         core.hidePalette(restoreFocus: false)
     }
 
+    func windowDidEndLiveResize(_ notification: Notification) {
+        guard let panel, notification.object as? PalettePanel === panel,
+              let style = panelStyle else { return }
+        sizeStore.save(panel.frame.size, style: style.rawValue)
+        savePosition(panel, style: style)
+    }
+
+    func windowDidChangeScreen(_ notification: Notification) {
+        guard let panel, let style = panelStyle, let screen = panel.screen else { return }
+        updateSizeLimits(panel, style: style, screen: screen)
+    }
+
+    private func preferredSize(for style: PaletteVisualStyle) -> CGSize {
+        let saved = sizeStore.load(style: style.rawValue) ?? Theme.Size.panelSize(for: style)
+        let minimum = Theme.Size.minimumPanelSize(for: style)
+        return CGSize(width: max(saved.width, minimum.width), height: max(saved.height, minimum.height))
+    }
+
+    private func updateSizeLimits(_ panel: PalettePanel, style: PaletteVisualStyle, screen: NSScreen) {
+        let bounds = screen.visibleFrame.insetBy(dx: 8, dy: 8)
+        let minimum = Theme.Size.minimumPanelSize(for: style)
+        panel.minSize = CGSize(width: min(minimum.width, max(1, bounds.width)),
+                               height: min(minimum.height, max(1, bounds.height)))
+        panel.maxSize = CGSize(width: max(1, bounds.width), height: max(1, bounds.height))
+    }
+
     private func ensurePanel() -> PalettePanel {
         let style = core.settings.paletteVisualStyle
         if let panel, panelStyle == style { return panel }
@@ -100,25 +127,28 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         guard let screen = targetScreen() else { return }
         let visible = screen.visibleFrame
         let visualStyle = core.settings.paletteVisualStyle
+        updateSizeLimits(panel, style: visualStyle, screen: screen)
+        let panelSize = preferredSize(for: visualStyle)
         if visualStyle == .past {
+            let hasSavedSize = sizeStore.load(style: visualStyle.rawValue) != nil
             panel.setFrame(
                 WindowPlacement.pastFrame(
-                    visibleFrame: visible, preferredHeight: Theme.Size.pastPanelHeight),
+                    visibleFrame: visible, preferredHeight: panelSize.height,
+                    preferredWidth: hasSavedSize ? panelSize.width : nil),
                 display: true)
             return
         }
-        let panelSize = Theme.Size.panelSize(for: visualStyle)
-        let width = min(panelSize.width, max(1, visible.width - 32))
-        let height = min(panelSize.height, max(1, visible.height - 32))
+        let width = min(panelSize.width, max(1, visible.width - 16))
+        let height = min(panelSize.height, max(1, visible.height - 16))
         let topEdge = visible.maxY
             - visible.height * Theme.Size.paletteTopMarginFraction(for: visualStyle)
         panel.applyVisualStyle(visualStyle)
         panel.setFrame(
-            NSRect(
+            WindowPlacement.clamp(NSRect(
                 x: visible.midX - width / 2,
                 y: topEdge - height,
                 width: width,
-                height: height),
+                height: height), to: visible.insetBy(dx: 8, dy: 8)),
             display: true)
     }
 
@@ -156,7 +186,8 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             let screen = NSScreen.screens.first(where: { displayID($0) == saved.displayID }) ?? targetScreen()
         else { return false }
         let visible = screen.visibleFrame
-        let preferred = Theme.Size.panelSize(for: style)
+        updateSizeLimits(panel, style: style, screen: screen)
+        let preferred = preferredSize(for: style)
         let size = NSSize(
             width: min(preferred.width, max(1, visible.width - 16)),
             height: min(preferred.height, max(1, visible.height - 16)))

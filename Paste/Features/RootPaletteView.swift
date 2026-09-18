@@ -30,6 +30,10 @@ private struct DaycastPaletteView: View {
     @ObservedObject private var settings = AppCore.shared.settings
 
     @State private var scroll = ScrollIntent(kind: .top)
+    @AppStorage("daycastSplit.horizontalRatio") private var horizontalRatio = 0.0
+    @AppStorage("daycastSplit.verticalRatio") private var verticalRatio = 0.45
+    @State private var horizontalDragRatio: Double?
+    @State private var verticalDragRatio: Double?
 
     private var isQueryEmpty: Bool {
         vm.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -55,102 +59,145 @@ private struct DaycastPaletteView: View {
         let clips = vm.results
         let selected = vm.selectedItem
 
-        return Group {
-            if clips.isEmpty {
-                EmptyResults(
-                    text: isQueryEmpty && vm.kindFilter == .all
-                        ? "Clipboard history is empty" : "No matching entries",
-                    systemImage: "magnifyingglass"
-                )
-            } else {
-                HStack(spacing: 0) {
-                    ClipboardList(
-                        results: clips,
-                        selectedID: vm.selectedID,
-                        query: vm.query,
-                        scroll: scroll,
-                        hoverEnabled: !vm.menuOpen && !showRename,
-                        onSelect: { vm.select($0.id) },
-                        onActions: { item in vm.openActions(for: item.id) },
-                        renamingID: vm.renamingID,
-                        renameDraft: vm.renameDraft,
-                        onCommitRename: { vm.commitOpenRename($0) }
+        return GeometryReader { window in
+            let compact = window.size.width < Theme.Size.daycastCompactWidth
+            Group {
+                if clips.isEmpty {
+                    EmptyResults(
+                        text: isQueryEmpty && vm.kindFilter == .all
+                            ? "Clipboard history is empty" : "No matching entries",
+                        systemImage: "magnifyingglass"
                     )
-                    .frame(width: Theme.Size.clipboardListWidth)
-                    Rectangle()
-                        .fill(Theme.Colors.separator)
-                        .frame(width: 1)
-                    ClipboardPreview(item: selected, query: vm.query)
+                } else {
+                    GeometryReader { content in
+                        let total = compact ? content.size.height : content.size.width
+                        let ratio = compact ? (verticalDragRatio ?? verticalRatio)
+                            : (horizontalDragRatio ?? horizontalRatio)
+                        let listLength = DaycastSplitLayout.listLength(
+                            total: total, ratio: ratio, compact: compact)
+                        let layout = compact
+                            ? AnyLayout(VStackLayout(spacing: 0))
+                            : AnyLayout(HStackLayout(spacing: 0))
+                        layout {
+                            ClipboardList(
+                                results: clips,
+                                selectedID: vm.selectedID,
+                                query: vm.query,
+                                scroll: scroll,
+                                hoverEnabled: !vm.menuOpen && !showRename,
+                                onSelect: { vm.select($0.id) },
+                                onActions: { item in vm.openActions(for: item.id) },
+                                renamingID: vm.renamingID,
+                                renameDraft: vm.renameDraft,
+                                onCommitRename: { vm.commitOpenRename($0) }
+                            )
+                            .frame(width: compact ? nil : listLength,
+                                   height: compact ? listLength : nil)
+                            DaycastSplitDivider(
+                                compact: compact, listLength: listLength,
+                                onChange: { length in
+                                    let value = DaycastSplitLayout.ratio(for: length, total: total, compact: compact)
+                                    if compact { verticalDragRatio = value } else { horizontalDragRatio = value }
+                                },
+                                onEnd: {
+                                    if compact, let value = verticalDragRatio {
+                                        verticalRatio = value
+                                        verticalDragRatio = nil
+                                    } else if !compact, let value = horizontalDragRatio {
+                                        horizontalRatio = value
+                                        horizontalDragRatio = nil
+                                    }
+                                }
+                            )
+                            .frame(width: compact ? nil : DaycastSplitLayout.dividerThickness,
+                                   height: compact ? DaycastSplitLayout.dividerThickness : nil)
+                            .help("Drag to resize list and preview")
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel("Resize list and preview")
+                            .accessibilityValue(Text("\(Int(listLength / max(1, DaycastSplitLayout.availableLength(total)) * 100))%"))
+                            .accessibilityAdjustableAction { direction in
+                                let delta: CGFloat = direction == .increment ? 20 : -20
+                                let value = DaycastSplitLayout.ratio(
+                                    for: listLength + delta, total: total, compact: compact)
+                                if compact { verticalRatio = value } else { horizontalRatio = value }
+                            }
+                            ClipboardPreview(item: selected, query: vm.query, compact: compact)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
+                        .onChange(of: compact) {
+                            scroll = ScrollIntent(kind: .follow)
+                        }
+                    }
                 }
             }
-        }
-        .safeAreaInset(edge: .top, spacing: 0) { header }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            bottomBar(showActionGroup: selected != nil)
-                .allowsHitTesting(!showRename)
-        }
-        .overlay {
-            if vm.menuOpen {
-                Color.black.opacity(0.001)
-                    .contentShape(Rectangle())
-                    .onTapGesture { vm.closeMenu() }
+            .safeAreaInset(edge: .top, spacing: 0) { header(compact: compact) }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                bottomBar(showActionGroup: selected != nil, compact: compact)
+                    .allowsHitTesting(!showRename)
             }
-        }
-        .overlay(alignment: .bottomLeading) {
-            if showAppMenu {
-                PopoverMenu(
-                    items: menuItems,
-                    selection: $vm.menuSelection,
-                    onActivate: activateMenuItem
-                )
-                .padding(Self.menuInset)
-                .transition(Self.menuTransition(.bottomLeading))
+            .overlay {
+                if vm.menuOpen {
+                    Color.black.opacity(0.001)
+                        .contentShape(Rectangle())
+                        .onTapGesture { vm.closeMenu() }
+                }
             }
-        }
-        .overlay(alignment: .bottomTrailing) {
-            if showActions {
-                PopoverMenu(
-                    items: menuItems,
-                    selection: $vm.menuSelection,
-                    onActivate: activateMenuItem
-                )
-                .padding(Self.menuInset)
-                .transition(Self.menuTransition(.bottomTrailing))
+            .overlay(alignment: .bottomLeading) {
+                if showAppMenu {
+                    PopoverMenu(
+                        items: menuItems,
+                        selection: $vm.menuSelection,
+                        onActivate: activateMenuItem
+                    )
+                    .padding(Self.menuInset)
+                    .transition(Self.menuTransition(.bottomLeading))
+                }
             }
-        }
-        .overlay(alignment: .topTrailing) {
-            if showTypeFilter {
-                PopoverMenu(
-                    items: menuItems,
-                    selection: $vm.menuSelection,
-                    onActivate: activateMenuItem
-                )
-                .padding(.top, Theme.Size.headerPadding + Theme.Size.headerHeight)
-                .padding(.trailing, Theme.Spacing.md * 2)
-                .transition(Self.menuTransition(.topTrailing))
+            .overlay(alignment: .bottomTrailing) {
+                if showActions {
+                    PopoverMenu(
+                        items: menuItems,
+                        selection: $vm.menuSelection,
+                        onActivate: activateMenuItem
+                    )
+                    .padding(Self.menuInset)
+                    .transition(Self.menuTransition(.bottomTrailing))
+                }
             }
+            .overlay(alignment: .topTrailing) {
+                if showTypeFilter {
+                    PopoverMenu(
+                        items: menuItems,
+                        selection: $vm.menuSelection,
+                        onActivate: activateMenuItem
+                    )
+                    .padding(.top, Theme.Size.headerPadding + Theme.Size.headerHeight)
+                    .padding(.trailing, Theme.Spacing.md * 2)
+                    .transition(Self.menuTransition(.topTrailing))
+                }
+            }
+            .animation(Self.menuAnimation, value: vm.overlay)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(VisualEffectView())
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous))
+            .onAppear {
+                if vm.selectedGroupID != nil { vm.selectGroup(nil) }
+            }
+            .onChange(of: vm.resetToken) {
+                scroll = ScrollIntent(kind: .top)
+            }
+            .onChange(of: vm.followToken) {
+                scroll = ScrollIntent(kind: .follow)
+            }
+            .environment(\.locale, settings.language.locale)
         }
-        .animation(Self.menuAnimation, value: vm.overlay)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(VisualEffectView())
-        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous))
-        .onAppear {
-            if vm.selectedGroupID != nil { vm.selectGroup(nil) }
-        }
-        .onChange(of: vm.resetToken) {
-            scroll = ScrollIntent(kind: .top)
-        }
-        .onChange(of: vm.followToken) {
-            scroll = ScrollIntent(kind: .follow)
-        }
-        .environment(\.locale, settings.language.locale)
     }
 
-    private var header: some View {
+    private func header(compact: Bool) -> some View {
         HStack(alignment: .center, spacing: Theme.Spacing.md) {
             PaletteSearchField(text: $vm.query, enabled: !showRename, fontSize: 20)
                 .frame(maxWidth: .infinity)
-            typeFilterControl
+            typeFilterControl(compact: compact)
                 .allowsHitTesting(!showRename)
         }
         .padding(.horizontal, Theme.Spacing.md * 2)
@@ -159,7 +206,7 @@ private struct DaycastPaletteView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var typeFilterControl: some View {
+    private func typeFilterControl(compact: Bool) -> some View {
         BarButton(pressed: showTypeFilter, action: { vm.toggleTypeFilter() }) {
             HStack(spacing: Theme.Spacing.sm) {
                 LucideIconShape(name: vm.kindFilter.icon)
@@ -172,9 +219,11 @@ private struct DaycastPaletteView: View {
                     )
                     .frame(width: LucideIcon.size, height: LucideIcon.size)
                     .foregroundStyle(Theme.Colors.textSecondary)
-                Text(vm.kindFilter.title)
-                    .font(Theme.Typography.bar)
-                    .foregroundStyle(.primary)
+                if !compact {
+                    Text(vm.kindFilter.title)
+                        .font(Theme.Typography.bar)
+                        .foregroundStyle(.primary)
+                }
                 LucideIconShape(name: .chevronDown)
                     .stroke(
                         style: StrokeStyle(
@@ -194,14 +243,14 @@ private struct DaycastPaletteView: View {
         .accessibilityLabel(vm.kindFilter.title)
     }
 
-    private func bottomBar(showActionGroup: Bool) -> some View {
+    private func bottomBar(showActionGroup: Bool, compact: Bool) -> some View {
         HStack(spacing: 0) {
             MenuCircleButton(pressed: showAppMenu) { vm.toggleAppMenu() }
             PaletteWindowDragSurface()
                 .frame(maxWidth: .infinity)
                 .frame(height: Theme.Size.bottomBarHeight)
                 .allowsHitTesting(!vm.menuOpen && !showRename)
-            if showActionGroup { actionGroup }
+            if showActionGroup { actionGroup(compact: compact) }
         }
         .padding(.horizontal, Theme.Spacing.md)
         .frame(height: Theme.Size.bottomBarHeight)
@@ -209,25 +258,26 @@ private struct DaycastPaletteView: View {
     }
 
     @MainActor
-    private var actionGroup: some View {
+    private func actionGroup(compact: Bool) -> some View {
         HStack(spacing: 2) {
             BarButton(action: { vm.handle(.activate) }) {
                 HStack(spacing: Theme.Spacing.sm) {
                     if let path = vm.pasteTarget?.iconPath {
                         MenuFileIcon(path: path)
                     }
-                    Text(vm.pasteTarget?.pasteTitle ?? LocalizedStringKey("Paste"))
+                    Text(compact ? LocalizedStringKey("Paste") : (vm.pasteTarget?.pasteTitle ?? LocalizedStringKey("Paste")))
                         .font(Theme.Typography.bar)
                         .foregroundStyle(.primary)
-                    KeyCapChip(text: "↵", style: .outline)
+                    if !compact { KeyCapChip(text: "↵", style: .outline) }
                 }
             }
+            .accessibilityLabel(vm.pasteTarget?.pasteTitle ?? LocalizedStringKey("Paste"))
             BarButton(pressed: showActions, action: { vm.handle(.toggleActions) }) {
                 HStack(spacing: Theme.Spacing.sm) {
                     Text("Actions")
                         .font(Theme.Typography.bar)
                         .foregroundStyle(Theme.Colors.textSecondary)
-                    if let shortcut = PaletteShortcut.actions.displayString {
+                    if !compact, let shortcut = PaletteShortcut.actions.displayString {
                         HStack(spacing: Theme.Spacing.xxs) {
                             ForEach(Array(shortcut.enumerated()), id: \.offset) { _, glyph in
                                 KeyCapChip(text: String(glyph), style: .outline)
@@ -250,6 +300,89 @@ private struct DaycastPaletteView: View {
 
     private static func menuTransition(_ anchor: UnitPoint) -> AnyTransition {
         .opacity.combined(with: .scale(scale: 0.96, anchor: anchor))
+    }
+}
+
+/// A native drag target keeps the resize cursor and screen-space drag origin stable
+/// while SwiftUI moves the divider. Only mouse-up persists the preference.
+private struct DaycastSplitDivider: NSViewRepresentable {
+    let compact: Bool
+    let listLength: CGFloat
+    let onChange: (CGFloat) -> Void
+    let onEnd: () -> Void
+
+    func makeNSView(context: Context) -> DaycastSplitDividerView { DaycastSplitDividerView() }
+
+    func updateNSView(_ view: DaycastSplitDividerView, context: Context) {
+        view.compact = compact
+        view.listLength = listLength
+        view.onChange = onChange
+        view.onEnd = onEnd
+    }
+}
+
+private final class DaycastSplitDividerView: NSView {
+    var compact = false {
+        didSet {
+            guard compact != oldValue else { return }
+            window?.invalidateCursorRects(for: self)
+            needsDisplay = true
+        }
+    }
+    var listLength: CGFloat = 0
+    var onChange: ((CGFloat) -> Void)?
+    var onEnd: (() -> Void)?
+    private var dragStart: NSPoint?
+    private var initialLength: CGFloat = 0
+    private var hovered = false
+    private var hoverTracking: NSTrackingArea?
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func resetCursorRects() {
+        addCursorRect(bounds, cursor: compact ? .resizeUpDown : .resizeLeftRight)
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let hoverTracking { removeTrackingArea(hoverTracking) }
+        let tracking = NSTrackingArea(rect: .zero,
+            options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self, userInfo: nil)
+        addTrackingArea(tracking)
+        hoverTracking = tracking
+    }
+
+    override func mouseEntered(with event: NSEvent) { hovered = true; needsDisplay = true }
+    override func mouseExited(with event: NSEvent) { hovered = false; needsDisplay = true }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let active = hovered || dragStart != nil
+        (active ? NSColor.controlAccentColor.withAlphaComponent(0.65) : NSColor.separatorColor).setFill()
+        let thickness: CGFloat = active ? 2 : 1
+        let line = compact
+            ? NSRect(x: 0, y: bounds.midY - thickness / 2, width: bounds.width, height: thickness)
+            : NSRect(x: bounds.midX - thickness / 2, y: 0, width: thickness, height: bounds.height)
+        line.fill()
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        dragStart = NSEvent.mouseLocation
+        initialLength = listLength
+        needsDisplay = true
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let start = dragStart else { return }
+        let mouse = NSEvent.mouseLocation
+        let delta = compact ? start.y - mouse.y : mouse.x - start.x
+        onChange?(initialLength + delta)
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        guard dragStart != nil else { return }
+        onEnd?()
+        dragStart = nil
+        needsDisplay = true
     }
 }
 
