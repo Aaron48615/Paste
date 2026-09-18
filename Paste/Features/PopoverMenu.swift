@@ -28,7 +28,7 @@ struct PopoverMenuItem {
     init(action: PaletteMenuAction, target: PasteTarget?, kindFilter: ClipboardKindFilter = .all) {
         switch action {
         case .about:
-            title = "About Paste"
+            title = "About RePaste"
             icon = .lucide(.info)
         case .checkForUpdates:
             title = "Check for Updates"
@@ -39,7 +39,7 @@ struct PopoverMenuItem {
             icon = .lucide(.settings)
             shortcut = "⌘,"
         case .quit:
-            title = "Quit Paste"
+            title = "Quit RePaste"
             icon = .lucide(.power)
             shortcut = "⌘Q"
             isDestructive = true

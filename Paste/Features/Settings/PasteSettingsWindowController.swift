@@ -142,7 +142,7 @@ final class PasteSettingsWindowController {
             closesWindowWithEscapeKey: true
         )
         controller.settingsWindow.defaultWindowTitle = String(
-            localized: "Paste Settings",
+            localized: "RePaste Settings",
             locale: locale
         )
         observeGeometry(of: controller.settingsWindow)

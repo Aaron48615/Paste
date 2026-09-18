@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 @MainActor
 final class ClipboardManager {
     /// Marker attached to Paste's own writes so monitoring ignores them.
-    static let internalType = NSPasteboard.PasteboardType("com.eli.Paste.internal")
+    static let internalType = NSPasteboard.PasteboardType("com.aaron.RePaste.internal")
 
     /// Pasteboard markers password managers, browsers, and the OS put on secret copies.
     static let sensitiveTypes: Set<NSPasteboard.PasteboardType> = [

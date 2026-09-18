@@ -4,7 +4,7 @@ import Combine
 import QuartzCore
 
 /// Menu bar status item: `arrow.clockwise` template icon, left-click toggles the palette,
-/// right-click offers Show Paste / Settings / Quit. Spins clockwise on new clipboard inserts.
+/// right-click offers Show RePaste / Settings / Quit. Spins clockwise on new clipboard inserts.
 @MainActor
 final class MenuBarController: NSObject {
     private let settings: AppSettings
@@ -75,7 +75,7 @@ final class MenuBarController: NSObject {
     }
 
     private func applyLocalizedChrome() {
-        let title = String(localized: "Paste", locale: settings.language.locale)
+        let title = String(localized: "RePaste", locale: settings.language.locale)
         statusItem?.button?.setAccessibilityLabel(title)
         statusItem?.button?.toolTip = title
     }
@@ -99,7 +99,7 @@ final class MenuBarController: NSObject {
         let menu = NSMenu()
 
         let showItem = NSMenuItem(
-            title: String(localized: "Show Paste", locale: locale),
+            title: String(localized: "Show RePaste", locale: locale),
             action: #selector(showPaste),
             keyEquivalent: ""
         )
@@ -117,7 +117,7 @@ final class MenuBarController: NSObject {
         menu.addItem(.separator())
 
         let quitItem = NSMenuItem(
-            title: String(localized: "Quit Paste", locale: locale),
+            title: String(localized: "Quit RePaste", locale: locale),
             action: #selector(quit),
             keyEquivalent: "q"
         )

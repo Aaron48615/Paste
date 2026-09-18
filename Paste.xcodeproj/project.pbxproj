@@ -66,7 +66,7 @@
 		AA3100000000000000000006 /* PasteController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100000000000000000002 /* PasteController.swift */; };
 		AA3100000000000000000007 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100000000000000000003 /* main.swift */; };
 		AA3100000000000000000008 /* PasteControllerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100000000000000000001 /* PasteControllerProtocol.swift */; };
-		AA3100000000000000000012 /* paste-cli in CopyFiles */ = {isa = PBXBuildFile; fileRef = AA3100000000000000000004 /* paste-cli */; };
+		AA3100000000000000000012 /* repaste-cli in CopyFiles */ = {isa = PBXBuildFile; fileRef = AA3100000000000000000004 /* repaste-cli */; };
 		BB41A0000000000000000002 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB41A0000000000000000001 /* MenuBarController.swift */; };
 		BB41B0000000000000000002 /* sound-effect-1.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BB41B0000000000000000001 /* sound-effect-1.mp3 */; };
 		BB41B0000000000000000004 /* sound-effect-2.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BB41B0000000000000000003 /* sound-effect-2.mp3 */; };
@@ -146,7 +146,7 @@
 		D22A18A2E99B807E7716432E /* InputSourceSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceSwitcher.swift; sourceTree = "<group>"; };
 		D3E59B58F324A9600EE4325C /* Paste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Paste.entitlements; sourceTree = "<group>"; };
 		DB2357C425F1390F61CEB545 /* NerdFontsSymbolsOnly-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NerdFontsSymbolsOnly-LICENSE.txt"; sourceTree = "<group>"; };
-		E1C61CC3EAF30E7A03C2A141 /* Paste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Paste.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1C61CC3EAF30E7A03C2A141 /* RePaste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RePaste.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4A9AB5D6002E8775B7A1B4A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		E803D4959D800FE82F1EC0EA /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		EA577CC2AE8EBDA99C731955 /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
@@ -159,7 +159,7 @@
 		AA3100000000000000000001 /* PasteControllerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteControllerProtocol.swift; sourceTree = "<group>"; };
 		AA3100000000000000000002 /* PasteController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteController.swift; sourceTree = "<group>"; };
 		AA3100000000000000000003 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		AA3100000000000000000004 /* paste-cli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "paste-cli"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA3100000000000000000004 /* repaste-cli */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "repaste-cli"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB41A0000000000000000001 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
 		BB41B0000000000000000001 /* sound-effect-1.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "sound-effect-1.mp3"; sourceTree = "<group>"; };
 		BB41B0000000000000000003 /* sound-effect-2.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "sound-effect-2.mp3"; sourceTree = "<group>"; };
@@ -317,8 +317,8 @@
 		B768B677384035BB57EEA712 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E1C61CC3EAF30E7A03C2A141 /* Paste.app */,
-				AA3100000000000000000004 /* paste-cli */,
+				E1C61CC3EAF30E7A03C2A141 /* RePaste.app */,
+				AA3100000000000000000004 /* repaste-cli */,
 				AA3200000000000000000002 /* PasteTests.xctest */,
 			);
 			name = Products;
@@ -408,7 +408,7 @@
 				8A95500F24E10A81F9788E08 /* Sources */,
 				E0B3487F77980DE088DF0051 /* Resources */,
 				7B89C24AFFAA31720BE26BC7 /* Frameworks */,
-				AA3100000000000000000011 /* Embed paste-cli */,
+				AA3100000000000000000011 /* Embed repaste-cli */,
 			);
 			buildRules = (
 			);
@@ -422,13 +422,13 @@
 				18A3FC690CC58367A65F87C9 /* MacAppSettingsUI */,
 				AA1000000000000000000004 /* Sparkle */,
 			);
-			productName = Paste;
-			productReference = E1C61CC3EAF30E7A03C2A141 /* Paste.app */;
+			productName = RePaste;
+			productReference = E1C61CC3EAF30E7A03C2A141 /* RePaste.app */;
 			productType = "com.apple.product-type.application";
 		};
-		AA310000000000000000000B /* paste-cli */ = {
+		AA310000000000000000000B /* repaste-cli */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AA3100000000000000000010 /* Build configuration list for PBXNativeTarget "paste-cli" */;
+			buildConfigurationList = AA3100000000000000000010 /* Build configuration list for PBXNativeTarget "repaste-cli" */;
 			buildPhases = (
 				AA310000000000000000000C /* Sources */,
 				AA310000000000000000000D /* Frameworks */,
@@ -437,9 +437,9 @@
 			);
 			dependencies = (
 			);
-			name = "paste-cli";
-			productName = "paste-cli";
-			productReference = AA3100000000000000000004 /* paste-cli */;
+			name = "repaste-cli";
+			productName = "repaste-cli";
+			productReference = AA3100000000000000000004 /* repaste-cli */;
 			productType = "com.apple.product-type.tool";
 		};
 		AA3200000000000000000001 /* PasteTests */ = {
@@ -469,14 +469,14 @@
 			containerPortal = DF30A449222F94C11CFB0A63 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = AA310000000000000000000B;
-			remoteInfo = "paste-cli";
+			remoteInfo = "repaste-cli";
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXTargetDependency section */
 		AA3100000000000000000014 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = AA310000000000000000000B /* paste-cli */;
+			target = AA310000000000000000000B /* repaste-cli */;
 			targetProxy = AA3100000000000000000013 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -524,7 +524,7 @@
 			projectRoot = "";
 			targets = (
 				3BDB676D0A88A545F238711A /* Paste */,
-				AA310000000000000000000B /* paste-cli */,
+				AA310000000000000000000B /* repaste-cli */,
 				AA3200000000000000000001 /* PasteTests */,
 			);
 		};
@@ -550,15 +550,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		AA3100000000000000000011 /* Embed paste-cli */ = {
+		AA3100000000000000000011 /* Embed repaste-cli */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = Contents/Applications;
 			dstSubfolderSpec = 1;
 			files = (
-				AA3100000000000000000012 /* paste-cli in CopyFiles */,
+				AA3100000000000000000012 /* repaste-cli in CopyFiles */,
 			);
-			name = "Embed paste-cli";
+			name = "Embed repaste-cli";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -757,8 +757,8 @@
 					"$(inherited)",
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.eli.Paste;
-				PRODUCT_NAME = Paste;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.RePaste;
+				PRODUCT_NAME = RePaste;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -851,8 +851,8 @@
 					"$(inherited)",
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.eli.Paste;
-				PRODUCT_NAME = Paste;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.RePaste;
+				PRODUCT_NAME = RePaste;
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -865,8 +865,8 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.eli.Paste.cli;
-				PRODUCT_NAME = "paste-cli";
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.RePaste.cli;
+				PRODUCT_NAME = "repaste-cli";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -882,8 +882,8 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.eli.Paste.cli;
-				PRODUCT_NAME = "paste-cli";
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.RePaste.cli;
+				PRODUCT_NAME = "repaste-cli";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
@@ -903,7 +903,7 @@
 					"$(inherited)",
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.eli.PasteTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.RePasteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -924,7 +924,7 @@
 					"$(inherited)",
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.eli.PasteTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.aaron.RePasteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -954,7 +954,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		AA3100000000000000000010 /* Build configuration list for PBXNativeTarget "paste-cli" */ = {
+		AA3100000000000000000010 /* Build configuration list for PBXNativeTarget "repaste-cli" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA310000000000000000000E /* Debug */,

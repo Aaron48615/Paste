@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3BDB676D0A88A545F238711A"
-               BuildableName = "Paste.app"
+               BuildableName = "RePaste.app"
                BlueprintName = "Paste"
                ReferencedContainer = "container:Paste.xcodeproj">
             </BuildableReference>
@@ -31,7 +31,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB676D0A88A545F238711A"
-            BuildableName = "Paste.app"
+            BuildableName = "RePaste.app"
             BlueprintName = "Paste"
             ReferencedContainer = "container:Paste.xcodeproj">
          </BuildableReference>
@@ -54,7 +54,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB676D0A88A545F238711A"
-            BuildableName = "Paste.app"
+            BuildableName = "RePaste.app"
             BlueprintName = "Paste"
             ReferencedContainer = "container:Paste.xcodeproj">
          </BuildableReference>
@@ -71,7 +71,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3BDB676D0A88A545F238711A"
-            BuildableName = "Paste.app"
+            BuildableName = "RePaste.app"
             BlueprintName = "Paste"
             ReferencedContainer = "container:Paste.xcodeproj">
          </BuildableReference>

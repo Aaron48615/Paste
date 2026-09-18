@@ -9,7 +9,7 @@ final class PasteController {
     private let cards: PinnedImageWindowController
     private var listenFD: Int32 = -1
     private var acceptSource: DispatchSourceRead?
-    private let acceptQueue = DispatchQueue(label: "com.eli.Paste.controller")
+    private let acceptQueue = DispatchQueue(label: "com.aaron.RePaste.controller")
 
     init(core: AppCore, cards: PinnedImageWindowController) {
         self.core = core
@@ -107,7 +107,7 @@ final class PasteController {
         case "items.add":
             let text = stringArg(args, "text")?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             guard !text.isEmpty else { throw ControllerError("Text is empty") }
-            guard let item = core.clipboardStore.addText(text, sourceBundleID: "com.eli.Paste.cli")
+            guard let item = core.clipboardStore.addText(text, sourceBundleID: "com.aaron.RePaste.cli")
             else {
                 throw ControllerError("Failed to add item")
             }

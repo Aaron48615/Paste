@@ -31,4 +31,4 @@ contents.gsub!(/CURRENT_PROJECT_VERSION = [^;]+;/, "CURRENT_PROJECT_VERSION = #{
 File.binwrite(path, contents)
 RUBY
 
-print "Paste version set to ${version} (${build})"
+print "RePaste version set to ${version} (${build})"

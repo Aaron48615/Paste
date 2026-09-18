@@ -1,8 +1,8 @@
 <p align="center">
-  <img src=".github/assets/logo.png" width="128" height="128" alt="Paste">
+  <img src=".github/assets/logo.png" width="128" height="128" alt="RePaste">
 </p>
 
-<h1 align="center">Paste</h1>
+<h1 align="center">RePaste</h1>
 
 <p align="center">
   A native macOS clipboard history tool built for keyboard workflows<br>
@@ -29,18 +29,18 @@
 ---
 
 <p align="center">
-  <img alt="Paste clipboard history palette" src=".github/assets/app.png" width="860">
+  <img alt="RePaste clipboard history palette" src=".github/assets/app.png" width="860">
 </p>
 
 ## About
 
-Paste is a native macOS clipboard history tool that keeps copied content inside a lightweight command palette. It recognizes text, code, links, and images, records the source application, and turns search, selection, and paste-back into a keyboard-driven workflow.
+RePaste is a native macOS clipboard history tool that keeps copied content inside a lightweight command palette. It recognizes text, code, links, and images, records the source application, and turns search, selection, and paste-back into a keyboard-driven workflow.
 
 History is stored in a local SQLite database, with image payloads managed as local files. SQLite FTS5 and a Pinyin index search the complete history, including Chinese text found through full spelling or initials.
 
-## Why Paste
+## Why RePaste
 
-The system clipboard remembers only the latest copy, while many clipboard managers turn into permanent, feature-heavy windows. Paste behaves more like a focused command palette: summon it when needed, find and paste an item, then return immediately to the previous app.
+The system clipboard remembers only the latest copy, while many clipboard managers turn into permanent, feature-heavy windows. RePaste behaves more like a focused command palette: summon it when needed, find and paste an item, then return immediately to the previous app.
 
 - **Multiple content types**: classifies plain text, code, links, and images
 - **Full-history search**: SQLite FTS5 searches beyond the in-memory window
@@ -59,7 +59,7 @@ Press `Option + W` to show or hide the palette. Type to search, move with the ar
 - `Space`: preview an image
 - Action menu: paste while keeping the palette open, reveal images in Finder, delete entries, and more
 
-The global shortcut is configurable. Paste can also switch to an English input source when the palette opens, making Pinyin queries immediately available.
+The global shortcut is configurable. RePaste can also switch to an English input source when the palette opens, making Pinyin queries immediately available.
 
 ## Local Storage and Privacy
 
@@ -81,9 +81,19 @@ Applications can be excluded from capture. Keychain Access and Passwords are exc
 You need macOS 26, Xcode 26, and Swift 6.
 
 ```bash
-git clone https://github.com/imeelinew/Paste.git
+git clone https://github.com/Aaron48615/Paste.git
 cd Paste
 open Paste.xcodeproj
 ```
 
 Select the **Paste** scheme and choose **Product → Run**. Grant Accessibility permission when prompted before the first paste operation.
+
+## Independent RePaste fork
+
+RePaste is Aaron's independently developed fork of [imeelinew/Paste](https://github.com/imeelinew/Paste). The upstream attribution and AGPL-3.0 license are retained.
+
+The product is `RePaste.app` (`com.aaron.RePaste`) with a `repaste-cli` tool. History, images and pinned cards use `~/Library/Application Support/com.aaron.RePaste`; preferences and Accessibility grants are separate from the original app. Before the first RePaste run, optionally copy existing data with `python3 scripts/import-paste-data.py`. The script never overwrites an existing RePaste installation's data.
+
+Updates are disabled until a RePaste-owned feed and key are configured; see [RELEASING.md](RELEASING.md). The Xcode project, schemes and source folders retain their original names to reduce upstream merge friction. Builds produce RePaste. Local ad-hoc signing may still require renewed Accessibility permission after rebuilds; configure a stable signing identity to address that. Assign different global shortcuts if running both apps.
+
+For upstream contributions, start a branch from `upstream/main`, cherry-pick only general feature/fix commits, and open a PR from your fork. Keep RePaste branding, signing, updates and migration changes separate.

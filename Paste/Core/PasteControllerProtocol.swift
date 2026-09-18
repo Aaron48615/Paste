@@ -1,15 +1,15 @@
 import Darwin
 import Foundation
 
-/// Wire format shared by Paste.app (server) and paste-cli (client).
+/// Wire format shared by RePaste.app (server) and repaste-cli (client).
 /// One JSON object per connection, newline-terminated. The live app owns all state.
 enum PasteControllerIPC {
     static let protocolVersion = 1
-    static let appBundleID = "com.eli.Paste"
+    static let appBundleID = "com.aaron.RePaste"
     static let maxMessageBytes = 8 * 1024 * 1024
 
     static var socketPath: String {
-        // Prefer $HOME so paste-cli inside an agent sandbox still hits the real
+        // Prefer $HOME so repaste-cli inside an agent sandbox still hits the real
         // Application Support directory the GUI app binds. FileManager's
         // search path can be redirected in that environment.
         let home =
@@ -58,8 +58,8 @@ enum PasteControllerTransport {
             switch self {
             case .pathTooLong: "Controller socket path is too long"
             case .socket(let code): "Socket error \(code)"
-            case .notRunning: "Paste is not running"
-            case .timeout: "Timed out waiting for Paste"
+            case .notRunning: "RePaste is not running"
+            case .timeout: "Timed out waiting for RePaste"
             case .closed: "Controller connection closed"
             case .tooLarge: "Controller message is too large"
             }

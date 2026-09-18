@@ -734,7 +734,7 @@ private struct PasteApplicationMenu: View {
 
     var body: some View {
         Menu {
-            Button("About Paste") { core.showAbout() }
+            Button("About RePaste") { core.showAbout() }
             Divider()
             Button("New Text Item") { core.createTextItem() }
                 .keyboardShortcut("n", modifiers: .command)
@@ -742,9 +742,9 @@ private struct PasteApplicationMenu: View {
                 .keyboardShortcut(",", modifiers: .command)
             Divider()
             if core.isClipboardPaused {
-                Button("Resume Paste") { core.resumeClipboard() }
+                Button("Resume RePaste") { core.resumeClipboard() }
             } else {
-                Menu("Pause Paste") {
+                Menu("Pause RePaste") {
                     Button("For 15 Minutes") {
                         core.pauseClipboard(until: Date().addingTimeInterval(15 * 60))
                     }
@@ -761,7 +761,7 @@ private struct PasteApplicationMenu: View {
                 }
             }
             Divider()
-            Button("Quit Paste") { core.requestQuit() }
+            Button("Quit RePaste") { core.requestQuit() }
                 .keyboardShortcut("q", modifiers: .command)
         } label: {
             Image(systemName: "ellipsis")
@@ -772,7 +772,7 @@ private struct PasteApplicationMenu: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
-        .accessibilityLabel("Paste Menu")
+        .accessibilityLabel("RePaste Menu")
     }
 }
 

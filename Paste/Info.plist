@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Paste</string>
+	<string>RePaste</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIconName</key>
@@ -30,10 +30,9 @@
 	<true/>
 	<key>NSAutoFillRequiresTextContentTypeForOneTimeCodeOnMac</key>
 	<true/>
-	<key>SUFeedURL</key>
-	<string>https://imeelinew.github.io/Paste/appcast.xml</string>
-	<key>SUPublicEDKey</key>
-	<string>4r6yMauRlw+aLLxSMfyZqTLD4OTPOizEzu1hKRf9wUI=</string>
+	<!-- Configure a RePaste-owned feed and signing key before enabling updates. -->
+	<key>RePasteUpdatesEnabled</key>
+	<false/>
 	<key>SUScheduledCheckInterval</key>
 	<integer>86400</integer>
 </dict>

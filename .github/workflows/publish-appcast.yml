@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   publish-appcast:
+    if: vars.REPASTE_UPDATES_ENABLED == 'true'
     runs-on: macos-latest
 
     steps:

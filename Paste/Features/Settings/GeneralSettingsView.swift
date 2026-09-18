@@ -33,14 +33,19 @@ struct GeneralSettingsView: View {
             PreferencesDivider()
 
             PreferencesRow(label: "Updates", alignment: .firstTextBaseline) {
-                Toggle(
-                    "Automatically Check for Updates",
-                    isOn: Binding(
-                        get: { updateService.automaticallyChecksForUpdates },
-                        set: { updateService.setAutomaticallyChecksForUpdates($0) }
+                if updateService.isConfigured {
+                    Toggle(
+                        "Automatically Check for Updates",
+                        isOn: Binding(
+                            get: { updateService.automaticallyChecksForUpdates },
+                            set: { updateService.setAutomaticallyChecksForUpdates($0) }
+                        )
                     )
-                )
-                .toggleStyle(.checkbox)
+                    .toggleStyle(.checkbox)
+                } else {
+                    Text("RePaste updates are not configured yet.")
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .onAppear {
@@ -181,8 +186,9 @@ struct SoundSettingsView: View {
 }
 
 struct AboutSettingsView: View {
-    private static let repositoryURL = URL(string: "https://github.com/imeelinew/Paste")!
+    private static let repositoryURL = URL(string: "https://github.com/Aaron48615/Paste")!
     private static let acknowledgments: [(name: String, url: URL)] = [
+        ("Paste — original project", URL(string: "https://github.com/imeelinew/Paste")!),
         (
             "TinyCast",
             URL(string: "https://github.com/abue-ammar/tinycast")!
@@ -202,7 +208,7 @@ struct AboutSettingsView: View {
     ]
 
     private var appName: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Paste"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "RePaste"
     }
 
     private var versionString: String {

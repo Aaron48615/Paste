@@ -172,9 +172,9 @@ final class AppCore: ObservableObject {
         let locale = settings.language.locale
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = String(localized: "Quit Paste?", locale: locale)
+        alert.messageText = String(localized: "Quit RePaste?", locale: locale)
         alert.informativeText = String(
-            localized: "Paste will stop monitoring the clipboard until you open it again.",
+            localized: "RePaste will stop monitoring the clipboard until you open it again.",
             locale: locale
         )
         alert.addButton(withTitle: String(localized: "Quit", locale: locale))

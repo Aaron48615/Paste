@@ -475,7 +475,7 @@ final class ClipboardStore: ObservableObject {
 
     private static var defaultDirectory: URL {
         guard let bundleID = Bundle.main.bundleIdentifier else {
-            preconditionFailure("Paste requires a bundle identifier")
+            preconditionFailure("RePaste requires a bundle identifier")
         }
         return FileManager.default
             .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

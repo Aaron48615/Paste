@@ -80,7 +80,7 @@ enum PasteCLI {
 
     private static func parseItems(_ tail: [String]) throws -> (cmd: String, args: [String: String]) {
         guard let action = tail.first?.lowercased() else {
-            throw UsageError("Usage: paste-cli items <list|search|get|add|rename|pin|unpin|delete|copy|reveal>", showHelp: false)
+            throw UsageError("Usage: repaste-cli items <list|search|get|add|rename|pin|unpin|delete|copy|reveal>", showHelp: false)
         }
         let args = Array(tail.dropFirst())
         switch action {
@@ -90,10 +90,10 @@ enum PasteCLI {
             let query = args.joined(separator: " ")
             return ("items.search", ["query": query])
         case "get", "pin", "unpin", "delete", "copy", "reveal":
-            guard let id = args.first else { throw UsageError("Usage: paste-cli items \(action) <id>") }
+            guard let id = args.first else { throw UsageError("Usage: repaste-cli items \(action) <id>") }
             return ("items.\(action)", ["id": id])
         case "rename":
-            guard args.count >= 2 else { throw UsageError("Usage: paste-cli items rename <id> <title>") }
+            guard args.count >= 2 else { throw UsageError("Usage: repaste-cli items rename <id> <title>") }
             return ("items.rename", ["id": args[0], "title": args.dropFirst().joined(separator: " ")])
         case "add":
             let text = try parseAddText(args)
@@ -111,7 +111,7 @@ enum PasteCLI {
             let argument = args[index]
             if argument == "--text" {
                 let next = index + 1
-                guard next < args.count else { throw UsageError("Usage: paste-cli items add --text <text>") }
+                guard next < args.count else { throw UsageError("Usage: repaste-cli items add --text <text>") }
                 text = args[next]
                 index += 2
                 continue
@@ -121,21 +121,21 @@ enum PasteCLI {
         }
         let value = text ?? positional.joined(separator: " ")
         guard !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw UsageError("Usage: paste-cli items add --text <text>")
+            throw UsageError("Usage: repaste-cli items add --text <text>")
         }
         return value
     }
 
     private static func parseCards(_ tail: [String]) throws -> (cmd: String, args: [String: String]) {
         guard let action = tail.first?.lowercased() else {
-            throw UsageError("Usage: paste-cli cards <list|show|close|close-all|park|unpark>")
+            throw UsageError("Usage: repaste-cli cards <list|show|close|close-all|park|unpark>")
         }
         let args = Array(tail.dropFirst())
         switch action {
         case "list":
             return ("cards.list", [:])
         case "show", "close":
-            guard let id = args.first else { throw UsageError("Usage: paste-cli cards \(action) <id>") }
+            guard let id = args.first else { throw UsageError("Usage: repaste-cli cards \(action) <id>") }
             return ("cards.\(action)", ["id": id])
         case "close-all":
             return ("cards.close-all", [:])
@@ -154,7 +154,7 @@ enum PasteCLI {
             fd = try PasteControllerTransport.connect(
                 path: PasteControllerIPC.socketPath, timeout: 8)
         } catch {
-            throw CommandError("Paste is not running (\(error.localizedDescription))")
+            throw CommandError("RePaste is not running (\(error.localizedDescription))")
         }
         defer { Darwin.close(fd) }
 
@@ -185,7 +185,7 @@ enum PasteCLI {
         case "version":
             let payload = data as? [String: Any] ?? [:]
             print(
-                "Paste \(payload["version"] as? String ?? "") (\(payload["build"] as? String ?? "")) protocol \(jsonInt(payload["controller-protocol"]))"
+                "RePaste \(payload["version"] as? String ?? "") (\(payload["build"] as? String ?? "")) protocol \(jsonInt(payload["controller-protocol"]))"
             )
         case "status":
             let payload = data as? [String: Any] ?? [:]
@@ -259,8 +259,8 @@ enum PasteCLI {
     }
 
     private static let helpText = """
-        Paste CLI
-        Usage: paste-cli [--json] <command> [arguments]
+        RePaste CLI
+        Usage: repaste-cli [--json] <command> [arguments]
 
         Command groups:
           Status    version, status

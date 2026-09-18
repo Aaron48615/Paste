@@ -43,7 +43,7 @@ final class IPCTests: XCTestCase {
     func testSocketPathPointsAtApplicationSupport() {
         let path = PasteControllerIPC.socketPath
         XCTAssertTrue(
-            path.hasSuffix("Library/Application Support/com.eli.Paste/controller.sock"),
+            path.hasSuffix("Library/Application Support/com.aaron.RePaste/controller.sock"),
             "Unexpected socket path: \(path)")
     }
 

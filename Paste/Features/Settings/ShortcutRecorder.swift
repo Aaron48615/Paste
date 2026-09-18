@@ -166,7 +166,7 @@ private struct LocalShortcutRecorder: View {
 struct ShortcutsSettingsView: View {
     var body: some View {
         PreferencesForm(rowSpacing: 10) {
-            PreferencesRow(label: "Show Paste") {
+            PreferencesRow(label: "Show RePaste") {
                 KeyboardShortcuts.Recorder(for: .toggleClipboard)
             }
 

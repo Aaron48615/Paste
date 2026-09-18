@@ -1,29 +1,25 @@
-# Releasing Paste
+# Releasing RePaste
 
-Paste uses Sparkle without Developer ID signing or Apple notarization. GitHub Releases hosts update ZIPs and GitHub Pages serves the signed appcast.
-
-## One-time setup
-
-- Keep an `Apple Development` certificate in the login Keychain
-- Keep the Sparkle private key only in the Keychain and the repository's `SPARKLE_PRIVATE_KEY` Actions secret
-- Serve GitHub Pages from `main` and `/docs`
-
-This free distribution path is rejected by Gatekeeper on first download. Users may need to right-click Open or allow the app in System Settings. Sparkle's EdDSA signature protects subsequent updates but does not replace Apple notarization.
+RePaste is an independent fork of imeelinew/Paste. Do not reuse the upstream update feed, signing key, or Apple team. No RePaste update channel is currently enabled.
 
 ## Local Xcode runs
 
-The project defaults to ad-hoc signing (`Sign to Run Locally`) so local runs do not require the release team's certificate. Both Debug and Release use `Paste/Paste.local.entitlements`, which disables library validation for the local app so it can load the ad-hoc signed Sparkle framework. Hardened Runtime remains enabled. The shared Run scheme uses Release.
+Open `Paste.xcodeproj` and use the existing `Paste` scheme. Its product is `RePaste.app`, with bundle ID `com.aaron.RePaste`. The embedded tool is `repaste-cli`.
 
-Do not distribute these local builds. `scripts/release.sh` explicitly selects the Apple Development identity and the original `Paste/Paste.entitlements`, keeping library validation enabled for published builds. Manual certificate-signed archives must also set `PASTE_APP_ENTITLEMENTS=Paste/Paste.entitlements`.
+Debug and Release retain ad-hoc signing and `Paste/Paste.local.entitlements`. These local builds may require Accessibility permission again after rebuilding. Configure your own stable signing certificate in Xcode for durable identity; no certificate or developer account is configured by this fork.
+
+## Configure your own distribution
+
+1. Configure your Apple signing identity and set `REPASTE_TEAM_ID` for the release script. Certificate-signed archives use `PASTE_APP_ENTITLEMENTS=Paste/Paste.entitlements`.
+2. Generate a new Sparkle EdDSA key pair. Keep the private key outside the repository and configure the repository's `SPARKLE_PRIVATE_KEY` Actions secret.
+3. Host this fork's `docs/appcast.xml` via your own GitHub Pages setup. The current feed is intentionally empty.
+4. Add your HTTPS `SUFeedURL` and matching `SUPublicEDKey` to `Paste/Info.plist`, then set `RePasteUpdatesEnabled` to true.
+5. Set the repository Actions variable `REPASTE_UPDATES_ENABLED` to `true` to enable appcast publishing.
+
+Keep the original AGPL-3.0 license and upstream attribution with distributed versions. Apple signing/notarization and Sparkle update signing serve different purposes; configure the distribution path appropriate to your release.
 
 ## Publish
 
-From a clean `main` branch, run:
+From a clean `main` branch, run `REPASTE_TEAM_ID=YOUR_TEAM ./scripts/release.sh <version> <build>`.
 
-```bash
-./scripts/release.sh 0.1.3 2
-```
-
-The script updates both version fields, creates a version commit, archives with the free Apple Development certificate, pushes `main`, and creates a GitHub Release containing the ZIP. The Release description is always empty.
-
-The `Publish Sparkle Appcast` workflow then signs the ZIP with the repository secret and commits the updated `docs/appcast.xml` to `main`.
+The script defaults to `Aaron48615/Paste` (override with `REPASTE_GITHUB_REPOSITORY`), updates versions, archives `RePaste.app`, pushes `main`, and publishes `RePaste-<version>.zip`. The release description is empty. Once explicitly enabled, the appcast workflow signs the update and publishes the fork's feed.

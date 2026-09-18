@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "AA310000000000000000000B"
-               BuildableName = "paste-cli"
+               BuildableName = "repaste-cli"
                ReferencedContainer = "container:Paste.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA310000000000000000000B"
-            BuildableName = "paste-cli"
+            BuildableName = "repaste-cli"
             ReferencedContainer = "container:Paste.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "AA310000000000000000000B"
-            BuildableName = "paste-cli"
+            BuildableName = "repaste-cli"
             ReferencedContainer = "container:Paste.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

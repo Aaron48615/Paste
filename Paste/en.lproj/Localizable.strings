@@ -1,4 +1,4 @@
-"About Paste" = "About Paste";
+"About RePaste" = "About RePaste";
 "About" = "About";
 "Acknowledgments" = "Acknowledgments";
 "Actions" = "Actions";
@@ -18,7 +18,7 @@
 "Clear History" = "Clear History";
 "Check for Updates" = "Check for Updates";
 "Clipboard" = "Clipboard";
-"Show Paste" = "Show Paste";
+"Show RePaste" = "Show RePaste";
 "Code" = "Code";
 "Content Preview" = "Content Preview";
 "Clipboard history is empty" = "Clipboard history is empty";
@@ -62,9 +62,9 @@
 "Color" = "Color";
 "Name" = "Name";
 "Save" = "Save";
-"Paste Menu" = "Paste Menu";
-"Pause Paste" = "Pause Paste";
-"Resume Paste" = "Resume Paste";
+"RePaste Menu" = "RePaste Menu";
+"Pause RePaste" = "Pause RePaste";
+"Resume RePaste" = "Resume RePaste";
 "For 15 Minutes" = "For 15 Minutes";
 "For 1 Hour" = "For 1 Hour";
 "Until Tomorrow" = "Until Tomorrow";
@@ -80,10 +80,10 @@
 "Palette" = "Palette";
 "Paste" = "Paste";
 "Paste & Keep Window Open" = "Paste & Keep Window Open";
-"Paste Settings" = "Paste Settings";
+"RePaste Settings" = "RePaste Settings";
 "Paste to %@" = "Paste to %@";
 "Plain Text" = "Plain Text";
-"Paste will stop monitoring the clipboard until you open it again." = "Paste will stop monitoring the clipboard";
+"RePaste will stop monitoring the clipboard until you open it again." = "RePaste will stop monitoring the clipboard";
 "Past 30 Days" = "Past 30 Days";
 "Past 7 Days" = "Past 7 Days";
 "Pin Entry" = "Pin Entry";
@@ -115,8 +115,8 @@
 "Hide Pinned Cards" = "Hide Pinned Cards";
 "Pinned" = "Pinned";
 "Quit" = "Quit";
-"Quit Paste" = "Quit Paste";
-"Quit Paste?" = "Quit Paste?";
+"Quit RePaste" = "Quit RePaste";
+"Quit RePaste?" = "Quit RePaste?";
 "Repository" = "Repository";
 "Render Markdown" = "Render Markdown";
 "Select All" = "Select All";
@@ -161,3 +161,6 @@
 /* Daycast split divider */
 "Resize list and preview" = "Resize list and preview";
 "Drag to resize list and preview" = "Drag to resize list and preview";
+
+"RePaste" = "RePaste";
+"RePaste updates are not configured yet." = "RePaste updates are not configured yet.";
