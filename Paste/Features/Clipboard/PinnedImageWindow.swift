@@ -412,15 +412,7 @@ final class PinnedImageWindowController: NSObject, NSWindowDelegate {
             )
         }
 
-        install(
-            PinnedImageContent(
-                itemID: itemID,
-                url: contentURL,
-                decodeMaxPixel: imageDecodeMaxPixel,
-                onClose: { [weak self] in self?.close(itemID) }
-            ),
-            in: panel
-        )
+        installImage(url: contentURL, in: panel)
         let frame = present(panel, size: initialSize, in: visibleFrame, itemID: itemID)
         if storedURL != nil {
             sessionStore.add(itemID: itemID, kind: .image, frame: frame)
@@ -524,15 +516,7 @@ final class PinnedImageWindowController: NSObject, NSWindowDelegate {
                     preferredLongEdge: preferredLongEdge)
             )
         }
-        install(
-            PinnedImageContent(
-                itemID: record.id,
-                url: url,
-                decodeMaxPixel: imageDecodeMaxPixel,
-                onClose: { [weak self] in self?.close(record.id) }
-            ),
-            in: panel
-        )
+        installImage(url: url, in: panel)
         restore(panel, record: record)
         return true
     }
@@ -916,7 +900,7 @@ final class PinnedImageWindowController: NSObject, NSWindowDelegate {
         switch context {
         case .image(_, let imageSize, let preferredLongEdge):
             size = PinnedImageLayout.initialSize(
-                imageSize: imageSize,
+                imageSize: panel.imageDisplaySize ?? imageSize,
                 visibleFrame: visibleFrame,
                 preferredLongEdge: preferredLongEdge()
             )
@@ -998,7 +982,8 @@ final class PinnedImageWindowController: NSObject, NSWindowDelegate {
     ) -> PinnedImagePanel {
         let panel = PinnedImagePanel(
             contentRect: NSRect(origin: .zero, size: initialSize),
-            styleMask: [.borderless, .resizable],
+            // Image panels use zoom gestures and a bare image surface.
+            styleMask: aspectRatio == nil ? [.borderless, .resizable] : [.borderless],
             backing: .buffered,
             defer: false
         )
@@ -1015,6 +1000,7 @@ final class PinnedImageWindowController: NSObject, NSWindowDelegate {
         panel.animationBehavior = .none
         panel.isReleasedWhenClosed = false
         if let aspectRatio {
+            panel.allowsOversizedImage = true
             panel.contentAspectRatio = aspectRatio
         }
         panel.contentMinSize = minSize
@@ -1022,10 +1008,44 @@ final class PinnedImageWindowController: NSObject, NSWindowDelegate {
         return panel
     }
 
+    private func installImage(url: URL, in panel: PinnedImagePanel) {
+        let view = PinnedImageView(frame: NSRect(origin: .zero, size: panel.frame.size))
+        view.autoresizingMask = [.width, .height]
+        panel.contentView = view
+        let maxPixel = imageDecodeMaxPixel
+        Task { [weak view] in
+            let image = await ImageThumbnail.loadAsync(url, maxPixel: maxPixel)
+            guard let view else { return }
+            let displayed = image.map(PinnedImagePresentation.image)
+            view.image = displayed ?? NSImage(
+                systemSymbolName: "photo.badge.exclamationmark", accessibilityDescription: nil)
+            if let displayed, let panel = view.window as? PinnedImagePanel {
+                panel.imageDisplaySize = displayed.size
+                panel.contentAspectRatio = displayed.size
+                let visibleFrame = panel.screen?.visibleFrame ?? self.targetVisibleFrame()
+                panel.contentMinSize = PinnedImageLayout.minimumSize(
+                    imageSize: displayed.size, visibleFrame: visibleFrame)
+                // Keep the saved long edge, but match the cropped image's aspect ratio.
+                // This also makes restoration idempotent instead of trimming the frame again.
+                let current = panel.frame
+                let scale = max(current.width, current.height)
+                    / max(displayed.size.width, displayed.size.height)
+                let size = CGSize(width: displayed.size.width * scale, height: displayed.size.height * scale)
+                let frame = NSRect(
+                    x: current.midX - size.width / 2, y: current.midY - size.height / 2,
+                    width: size.width, height: size.height)
+                if !frame.nearlyEquals(current) { panel.setFrame(frame, display: true) }
+            }
+            view.displayIfNeeded()
+            view.window?.invalidateShadow()
+        }
+    }
+
     private func install(_ view: some View, in panel: PinnedImagePanel) {
         let hosting = NSHostingView(rootView: view)
         hosting.sizingOptions = []
         hosting.wantsLayer = true
+        hosting.layer?.backgroundColor = NSColor.clear.cgColor
         hosting.layer?.cornerRadius = Theme.Radius.panel
         hosting.layer?.cornerCurve = .continuous
         hosting.layer?.masksToBounds = true
@@ -1363,6 +1383,12 @@ private enum PinnedCardPark {
 
 private final class PinnedImagePanel: NSPanel {
     var onCommand: ((PinnedImageCommand) -> Void)?
+    var allowsOversizedImage = false
+    var imageDisplaySize: CGSize?
+
+    override func constrainFrameRect(_ frameRect: NSRect, to screen: NSScreen?) -> NSRect {
+        allowsOversizedImage ? frameRect : super.constrainFrameRect(frameRect, to: screen)
+    }
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
@@ -1401,9 +1427,12 @@ private final class PinnedImagePanel: NSPanel {
         guard current.width > 0, current.height > 0 else { return }
 
         let visibleFrame = resizeVisibleFrame()
+        // Bound backing-surface allocation without tying image zoom to the display size.
+        let maximumSize = allowsOversizedImage
+            ? CGSize(width: 16_384, height: 16_384) : visibleFrame.size
         let maximumScale = min(
-            visibleFrame.width / current.width,
-            visibleFrame.height / current.height
+            maximumSize.width / current.width,
+            maximumSize.height / current.height
         )
         guard maximumScale.isFinite, maximumScale > 0 else { return }
         let minimumScale = min(max(
@@ -1424,7 +1453,7 @@ private final class PinnedImagePanel: NSPanel {
             x: screenAnchor.x - size.width * unitAnchor.x,
             y: screenAnchor.y - size.height * unitAnchor.y
         )
-        let origin = NSPoint(
+        let origin = allowsOversizedImage ? proposedOrigin : NSPoint(
             x: min(max(proposedOrigin.x, visibleFrame.minX), visibleFrame.maxX - size.width),
             y: min(max(proposedOrigin.y, visibleFrame.minY), visibleFrame.maxY - size.height)
         )
@@ -1481,58 +1510,88 @@ private struct PinnedCardBackground: View {
     }
 }
 
-@MainActor
-private struct PinnedImageContent: View {
-    let itemID: ClipboardItem.ID
-    let url: URL
-    let decodeMaxPixel: CGFloat
-    let onClose: () -> Void
-
-    @State private var image: NSImage?
-    @State private var loadFailed = false
-
-    var body: some View {
-        ZStack(alignment: .top) {
-            PinnedCardBackground()
-
-            if let image {
-                Image(nsImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if loadFailed {
-                Image(systemName: "photo.badge.exclamationmark")
-                    .font(.system(size: 28, weight: .regular))
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ProgressView()
-                    .controlSize(.small)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-
-            PinnedImageDragSurface()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            PinnedCardChrome(
-                itemID: itemID,
-                trailingWidth: 28,
-                closeLabel: "Close Pinned Image",
-                onClose: onClose
-            ) {
-                Color.clear
-                    .frame(width: 28, height: 28)
-                    .allowsHitTesting(false)
+/// Removes only screenshot-like transparent margins from the displayed copy.
+enum PinnedImagePresentation {
+    static func image(_ source: NSImage) -> NSImage {
+        guard let bitmap = source.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return source
+        }
+        let width = bitmap.width
+        let height = bitmap.height
+        guard width > 2, height > 2,
+            let context = CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8,
+                bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                    | CGBitmapInfo.byteOrder32Big.rawValue),
+            let data = context.data
+        else { return source }
+        context.draw(bitmap, in: CGRect(x: 0, y: 0, width: width, height: height))
+        let pixels = data.assumingMemoryBound(to: UInt8.self)
+        var minX = width
+        var minY = height
+        var maxX = -1
+        var maxY = -1
+        var opaqueCount = 0
+        for y in 0..<height {
+            for x in 0..<width where pixels[y * context.bytesPerRow + x * 4 + 3] >= 254 {
+                minX = min(minX, x)
+                maxX = max(maxX, x)
+                minY = min(minY, y)
+                maxY = max(maxY, y)
+                opaqueCount += 1
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .contentShape(Rectangle())
-        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.panel, style: .continuous))
-        .ignoresSafeArea()
-        .task(id: url) {
-            image = await ImageThumbnail.loadAsync(url, maxPixel: decodeMaxPixel)
-            loadFailed = image == nil
+        // Window screenshots have a nearly solid rectangular body with translucent shadow
+        // around all four sides. Do not trim photos, cutouts, or translucent artwork.
+        guard minX > 0, minY > 0, maxX < width - 1, maxY < height - 1,
+            maxX > minX, maxY > minY else { return source }
+        let bodyWidth = maxX - minX + 1
+        let bodyHeight = maxY - minY + 1
+        let area = bodyWidth * bodyHeight
+        guard Double(opaqueCount) / Double(area) >= 0.98,
+            Double(area) / Double(width * height) >= 0.5 else { return source }
+        // Preserve semi-transparent content outside the rectangle; only a faint shadow is
+        // eligible. Leave one pixel for anti-aliasing immediately beside the opaque body.
+        for y in 0..<height {
+            for x in 0..<width {
+                if x >= minX - 1, x <= maxX + 1, y >= minY - 1, y <= maxY + 1 { continue }
+                if pixels[y * context.bytesPerRow + x * 4 + 3] > 96 { return source }
+            }
         }
+        let rect = CGRect(x: minX, y: minY, width: bodyWidth, height: bodyHeight)
+        guard let cropped = bitmap.cropping(to: rect) else { return source }
+        return NSImage(cgImage: cropped, size: CGSize(
+            width: source.size.width * CGFloat(bodyWidth) / CGFloat(width),
+            height: source.size.height * CGFloat(bodyHeight) / CGFloat(height)))
+    }
+}
+
+/// The image is the entire window content: no hosting background, insets, frame, or controls.
+private final class PinnedImageView: NSImageView {
+    override var isOpaque: Bool { false }
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        imageFrameStyle = .none
+        // The panel maintains the image's aspect ratio when zooming. Fill its exact bounds,
+        // including fractional rounding, so no fitted-image gutters become a visible border.
+        imageScaling = .scaleAxesIndependently
+        imageAlignment = .alignCenter
+        isEditable = false
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        window?.performDrag(with: event)
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        window?.invalidateShadow()
     }
 }
 
