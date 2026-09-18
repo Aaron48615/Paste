@@ -9,6 +9,7 @@ final class PalettePanel: NSPanel {
     private let visualStyle: PaletteVisualStyle
     lazy var itemInteractions = PaletteItemInteractionController(panel: self, style: visualStyle)
     var onUserDragEnded: (() -> Void)?
+    var onUserResizeEnded: (() -> Void)?
     var auxiliaryInputActive = false
     weak var paletteViewModel: PaletteViewModel? {
         didSet {
@@ -21,6 +22,7 @@ final class PalettePanel: NSPanel {
         }
     }
 
+    private weak var resizeSurface: PaletteResizeSurface?
     private weak var searchField: NSTextField?
     private weak var renameField: NSTextField?
     private var pendingSearchFocusRequest: UUID?
@@ -30,12 +32,22 @@ final class PalettePanel: NSPanel {
     ]
 
     override func sendEvent(_ event: NSEvent) {
+        if event.type == .leftMouseDown, let resizeSurface,
+            resizeSurface.containsResizePoint(event.locationInWindow) {
+            itemInteractions.cancel()
+            resizeSurface.mouseDown(with: event)
+            return
+        }
         if itemInteractions.handle(event) { return }
         if event.type == .leftMouseDown || event.type == .rightMouseDown {
             commitRenameIfClickIsOutside(event)
         }
         if event.type == .keyDown, route(event) { return }
         super.sendEvent(event)
+        if event.type == .mouseMoved, let resizeSurface,
+            resizeSurface.containsResizePoint(event.locationInWindow) {
+            resizeSurface.cursorUpdate(with: event)
+        }
     }
 
     override func orderOut(_ sender: Any?) {
@@ -324,6 +336,15 @@ final class PalettePanel: NSPanel {
             material.addSubview(hosting)
             contentView = material
         }
+        installResizeSurface()
+    }
+
+    private func installResizeSurface() {
+        guard let contentView else { return }
+        let surface = PaletteResizeSurface(frame: contentView.bounds)
+        surface.autoresizingMask = [.width, .height]
+        contentView.addSubview(surface)
+        resizeSurface = surface
     }
 
     func applyVisualStyle(_ visualStyle: PaletteVisualStyle) {
@@ -342,4 +363,127 @@ final class PalettePanel: NSPanel {
 
 private final class TransparentPaletteHostingView<Content: View>: NSHostingView<Content> {
     override var isOpaque: Bool { false }
+}
+
+/// Owns only the outer edge; the rest of the palette keeps its existing hit testing.
+private final class PaletteResizeSurface: NSView {
+    private struct Edges: OptionSet {
+        let rawValue: Int
+        static let left = Self(rawValue: 1)
+        static let right = Self(rawValue: 2)
+        static let bottom = Self(rawValue: 4)
+        static let top = Self(rawValue: 8)
+    }
+
+    private var tracking: NSTrackingArea?
+
+    private func edges(at point: NSPoint) -> Edges {
+        guard bounds.contains(point) else { return [] }
+        let horizontal = point.x < 20 || point.x > bounds.width - 20
+        let vertical = point.y < 20 || point.y > bounds.height - 20
+        let margin: CGFloat = horizontal && vertical ? 20 : 8
+        var edges: Edges = []
+        if point.x < margin { edges.insert(.left) }
+        if point.x > bounds.width - margin { edges.insert(.right) }
+        if point.y < margin { edges.insert(.bottom) }
+        if point.y > bounds.height - margin { edges.insert(.top) }
+        return edges
+    }
+
+    func containsResizePoint(_ point: NSPoint) -> Bool {
+        !edges(at: convert(point, from: nil)).isEmpty
+    }
+
+    override func resetCursorRects() {
+        super.resetCursorRects()
+        let w = bounds.width
+        let h = bounds.height
+        addCursorRect(NSRect(x: 0, y: 20, width: 8, height: max(h - 40, 0)), cursor: .resizeLeftRight)
+        addCursorRect(NSRect(x: w - 8, y: 20, width: 8, height: max(h - 40, 0)), cursor: .resizeLeftRight)
+        addCursorRect(NSRect(x: 20, y: 0, width: max(w - 40, 0), height: 8), cursor: .resizeUpDown)
+        addCursorRect(NSRect(x: 20, y: h - 8, width: max(w - 40, 0), height: 8), cursor: .resizeUpDown)
+        addCursorRect(NSRect(x: 0, y: 0, width: 20, height: 20), cursor: Self.risingCursor)
+        addCursorRect(NSRect(x: w - 20, y: h - 20, width: 20, height: 20), cursor: Self.risingCursor)
+        addCursorRect(NSRect(x: 0, y: h - 20, width: 20, height: 20), cursor: Self.fallingCursor)
+        addCursorRect(NSRect(x: w - 20, y: 0, width: 20, height: 20), cursor: Self.fallingCursor)
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        edges(at: convert(point, from: superview)).isEmpty ? nil : self
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let tracking { removeTrackingArea(tracking) }
+        let area = NSTrackingArea(
+            rect: bounds,
+            options: [.activeAlways, .inVisibleRect, .cursorUpdate, .mouseMoved, .mouseEnteredAndExited],
+            owner: self, userInfo: nil)
+        addTrackingArea(area)
+        tracking = area
+    }
+
+    private func cursor(for edges: Edges) -> NSCursor {
+        let horizontal = !edges.intersection([.left, .right]).isEmpty
+        let vertical = !edges.intersection([.top, .bottom]).isEmpty
+        if horizontal && vertical {
+            let rising = edges == [.left, .bottom] || edges == [.right, .top]
+            return rising ? Self.risingCursor : Self.fallingCursor
+        }
+        return horizontal ? .resizeLeftRight : .resizeUpDown
+    }
+
+    private static let risingCursor = diagonalCursor("arrow.up.right.and.arrow.down.left")
+    private static let fallingCursor = diagonalCursor("arrow.up.left.and.arrow.down.right")
+
+    private static func diagonalCursor(_ symbol: String) -> NSCursor {
+        guard let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) else {
+            return .crosshair
+        }
+        return NSCursor(image: image, hotSpot: NSPoint(x: image.size.width / 2, y: image.size.height / 2))
+    }
+
+    override func cursorUpdate(with event: NSEvent) {
+        let edges = edges(at: convert(event.locationInWindow, from: nil))
+        if !edges.isEmpty { cursor(for: edges).set() }
+    }
+
+    override func mouseMoved(with event: NSEvent) { cursorUpdate(with: event) }
+    override func mouseEntered(with event: NSEvent) { cursorUpdate(with: event) }
+    override func mouseExited(with event: NSEvent) { window?.invalidateCursorRects(for: self) }
+
+    override func mouseDown(with event: NSEvent) {
+        guard let panel = window as? PalettePanel else { return }
+        let edges = edges(at: convert(event.locationInWindow, from: nil))
+        guard !edges.isEmpty else { return }
+        let initial = panel.frame
+        let start = panel.convertPoint(toScreen: event.locationInWindow)
+        let resizeCursor = cursor(for: edges)
+        resizeCursor.push()
+        defer {
+            NSCursor.pop()
+            panel.onUserResizeEnded?()
+            panel.invalidateCursorRects(for: self)
+        }
+        while let next = panel.nextEvent(matching: [.leftMouseDragged, .leftMouseUp]) {
+            if next.type == .leftMouseUp { break }
+            let point = panel.convertPoint(toScreen: next.locationInWindow)
+            let dx = point.x - start.x
+            let dy = point.y - start.y
+            var frame = initial
+            if edges.contains(.left) || edges.contains(.right) {
+                let proposed = initial.width + (edges.contains(.left) ? -dx : dx)
+                frame.size.width = min(max(proposed, panel.minSize.width), panel.maxSize.width)
+                if edges.contains(.left) { frame.origin.x = initial.maxX - frame.width }
+            }
+            if edges.contains(.bottom) || edges.contains(.top) {
+                let proposed = initial.height + (edges.contains(.bottom) ? -dy : dy)
+                frame.size.height = min(max(proposed, panel.minSize.height), panel.maxSize.height)
+                if edges.contains(.bottom) { frame.origin.y = initial.maxY - frame.height }
+            }
+            panel.setFrame(frame, display: true)
+            panel.contentView?.layoutSubtreeIfNeeded()
+            resizeCursor.set()
+        }
+    }
 }

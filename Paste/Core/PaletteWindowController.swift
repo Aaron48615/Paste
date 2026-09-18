@@ -116,6 +116,11 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             guard let self, let panel else { return }
             self.savePosition(panel, style: style)
         }
+        panel.onUserResizeEnded = { [weak self, weak panel] in
+            guard let self, let panel else { return }
+            self.sizeStore.save(panel.frame.size, style: style.rawValue)
+            self.savePosition(panel, style: style)
+        }
         panel.delegate = self
         panel.paletteViewModel = core.palette
         self.panel = panel
