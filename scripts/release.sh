@@ -62,6 +62,8 @@ xcodebuild archive \
     -derivedDataPath "$derived_data" \
     -destination 'generic/platform=macOS' \
     DEVELOPMENT_TEAM="$team_id" \
+    CODE_SIGN_STYLE=Automatic \
+    PASTE_APP_ENTITLEMENTS=Paste/Paste.entitlements \
     CODE_SIGN_IDENTITY='Apple Development' \
     MARKETING_VERSION="$version" \
     CURRENT_PROJECT_VERSION="$build"

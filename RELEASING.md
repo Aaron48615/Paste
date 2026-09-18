@@ -10,6 +10,12 @@ Paste uses Sparkle without Developer ID signing or Apple notarization. GitHub Re
 
 This free distribution path is rejected by Gatekeeper on first download. Users may need to right-click Open or allow the app in System Settings. Sparkle's EdDSA signature protects subsequent updates but does not replace Apple notarization.
 
+## Local Xcode runs
+
+The project defaults to ad-hoc signing (`Sign to Run Locally`) so local runs do not require the release team's certificate. Both Debug and Release use `Paste/Paste.local.entitlements`, which disables library validation for the local app so it can load the ad-hoc signed Sparkle framework. Hardened Runtime remains enabled. The shared Run scheme uses Release.
+
+Do not distribute these local builds. `scripts/release.sh` explicitly selects the Apple Development identity and the original `Paste/Paste.entitlements`, keeping library validation enabled for published builds. Manual certificate-signed archives must also set `PASTE_APP_ENTITLEMENTS=Paste/Paste.entitlements`.
+
 ## Publish
 
 From a clean `main` branch, run:

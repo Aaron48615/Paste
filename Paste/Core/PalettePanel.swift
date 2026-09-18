@@ -7,6 +7,7 @@ import SwiftUI
 /// first responder, so embedded AppKit views and SwiftUI focus changes cannot disable commands.
 final class PalettePanel: NSPanel {
     private let visualStyle: PaletteVisualStyle
+    var onUserDragEnded: (() -> Void)?
     var auxiliaryInputActive = false
     weak var paletteViewModel: PaletteViewModel? {
         didSet {
@@ -261,6 +262,7 @@ final class PalettePanel: NSPanel {
         acceptsMouseMovedEvents = true
         level = .floating
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        isMovable = true
         isMovableByWindowBackground = false
         titleVisibility = .hidden
         titlebarAppearsTransparent = true

@@ -10,7 +10,17 @@ struct RootPaletteView: View {
         case .daycast:
             DaycastPaletteView()
         case .past:
-            PastPaletteView()
+            VStack(spacing: 0) {
+                PaletteWindowDragSurface()
+                    .overlay {
+                        Capsule()
+                            .fill(.secondary.opacity(0.45))
+                            .frame(width: 32, height: 4)
+                            .allowsHitTesting(false)
+                    }
+                    .frame(height: 20)
+                PastPaletteView()
+            }
         }
     }
 }
@@ -187,7 +197,10 @@ private struct DaycastPaletteView: View {
     private func bottomBar(showActionGroup: Bool) -> some View {
         HStack(spacing: 0) {
             MenuCircleButton(pressed: showAppMenu) { vm.toggleAppMenu() }
-            Spacer()
+            PaletteWindowDragSurface()
+                .frame(maxWidth: .infinity)
+                .frame(height: Theme.Size.bottomBarHeight)
+                .allowsHitTesting(!vm.menuOpen && !showRename)
             if showActionGroup { actionGroup }
         }
         .padding(.horizontal, Theme.Spacing.md)
@@ -1239,5 +1252,22 @@ private extension ClipboardGroupColor {
         case .pink: "Pink"
         case .gray: "Gray"
         }
+    }
+}
+
+/// A dedicated native drag target keeps text selection and card gestures independent.
+private struct PaletteWindowDragSurface: NSViewRepresentable {
+    func makeNSView(context: Context) -> PaletteWindowDragView { PaletteWindowDragView() }
+    func updateNSView(_ nsView: PaletteWindowDragView, context: Context) {}
+}
+
+private final class PaletteWindowDragView: NSView {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        guard let panel = window as? PalettePanel else { return }
+        let origin = panel.frame.origin
+        panel.performDrag(with: event)
+        if panel.frame.origin != origin { panel.onUserDragEnded?() }
     }
 }

@@ -32,9 +32,10 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         }
 
         let panel = ensurePanel()
-        let animateEntrance = !panel.isVisible && core.settings.paletteVisualStyle == .past
+        let restoredPosition = restorePosition(panel)
+        let animateEntrance = !restoredPosition && !panel.isVisible && core.settings.paletteVisualStyle == .past
             && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        position(panel)
+        if !restoredPosition { position(panel) }
         let destination = panel.frame
         if animateEntrance {
             panel.setFrameOrigin(NSPoint(x: destination.minX, y: destination.minY - destination.height))
@@ -84,6 +85,10 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             .environmentObject(core.palette)
             .environmentObject(core.clipboardStore)
         let panel = PalettePanel(rootView: root, visualStyle: core.settings.paletteVisualStyle)
+        panel.onUserDragEnded = { [weak self, weak panel] in
+            guard let self, let panel else { return }
+            self.savePosition(panel, style: style)
+        }
         panel.delegate = self
         panel.paletteViewModel = core.palette
         self.panel = panel
@@ -96,11 +101,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         let visible = screen.visibleFrame
         let visualStyle = core.settings.paletteVisualStyle
         if visualStyle == .past {
-            let bounds = screen.frame
             panel.setFrame(
-                NSRect(x: bounds.minX + 8, y: bounds.minY + 8,
-                       width: max(1, bounds.width - 16),
-                       height: min(Theme.Size.pastPanelHeight, bounds.height - 16)),
+                WindowPlacement.pastFrame(
+                    visibleFrame: visible, preferredHeight: Theme.Size.pastPanelHeight),
                 display: true)
             return
         }
@@ -117,6 +120,52 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
                 width: width,
                 height: height),
             display: true)
+    }
+
+    private struct SavedPosition: Codable {
+        let displayID: UInt32
+        let x: Double
+        let y: Double
+    }
+
+    private func positionKey(_ style: PaletteVisualStyle) -> String {
+        "palettePosition.\(style.rawValue)"
+    }
+
+    private func displayID(_ screen: NSScreen) -> UInt32 {
+        (screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber)?.uint32Value ?? 0
+    }
+
+    private func savePosition(_ panel: PalettePanel, style: PaletteVisualStyle) {
+        // Past always reopens at the current screen's usable bottom edge.
+        guard style == .daycast, let screen = panel.screen else { return }
+        let position = SavedPosition(
+            displayID: displayID(screen),
+            x: panel.frame.minX - screen.visibleFrame.minX,
+            y: panel.frame.minY - screen.visibleFrame.minY)
+        guard let data = try? JSONEncoder().encode(position) else { return }
+        UserDefaults.standard.set(data, forKey: positionKey(style))
+    }
+
+    private func restorePosition(_ panel: PalettePanel) -> Bool {
+        let style = core.settings.paletteVisualStyle
+        guard style == .daycast,
+            let data = UserDefaults.standard.data(forKey: positionKey(style)),
+            let saved = try? JSONDecoder().decode(SavedPosition.self, from: data),
+            saved.x.isFinite, saved.y.isFinite,
+            let screen = NSScreen.screens.first(where: { displayID($0) == saved.displayID }) ?? targetScreen()
+        else { return false }
+        let visible = screen.visibleFrame
+        let preferred = Theme.Size.panelSize(for: style)
+        let size = NSSize(
+            width: min(preferred.width, max(1, visible.width - 16)),
+            height: min(preferred.height, max(1, visible.height - 16)))
+        let frame = NSRect(
+            x: visible.minX + saved.x, y: visible.minY + saved.y,
+            width: size.width, height: size.height)
+        panel.applyVisualStyle(style)
+        panel.setFrame(WindowPlacement.clamp(frame, to: visible.insetBy(dx: 8, dy: 8)), display: true)
+        return true
     }
 
     private func targetScreen() -> NSScreen? {

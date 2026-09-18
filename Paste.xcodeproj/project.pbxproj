@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BC5100000000000000000003 /* WindowPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5100000000000000000001 /* WindowPlacement.swift */; };
+		BC5100000000000000000004 /* WindowPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5100000000000000000001 /* WindowPlacement.swift */; };
+		BC5100000000000000000005 /* WindowPlacementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC5100000000000000000002 /* WindowPlacementTests.swift */; };
 		02CB1E90666F628DBF9C7C78 /* EdgeDissolve.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6853210949502E0C47D69B9 /* EdgeDissolve.swift */; };
 		068B6C43C18DB6110AED985B /* PopoverMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C234D84C11C94266A6B560D /* PopoverMenu.swift */; };
 		07650D1993A6D4C0D5B7ACD8 /* PalettePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123A20E6FCB60D259A0CC145 /* PalettePanel.swift */; };
@@ -98,6 +101,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		BC5100000000000000000006 /* Paste.local.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Paste.local.entitlements; sourceTree = "<group>"; };
+		BC5100000000000000000001 /* WindowPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPlacement.swift; sourceTree = "<group>"; };
+		BC5100000000000000000002 /* WindowPlacementTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowPlacementTests.swift; sourceTree = "<group>"; };
 		0C1D141FBB730290AF3CA00C /* AppCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCore.swift; sourceTree = "<group>"; };
 		11927303CFC909AE918568B6 /* PaletteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteViewModel.swift; sourceTree = "<group>"; };
 		123A20E6FCB60D259A0CC145 /* PalettePanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PalettePanel.swift; sourceTree = "<group>"; };
@@ -214,6 +220,7 @@
 		1F4821574B8F54A2E1FF94DE /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				BC5100000000000000000001 /* WindowPlacement.swift */,
 				0C1D141FBB730290AF3CA00C /* AppCore.swift */,
 				AA3100000000000000000002 /* PasteController.swift */,
 				AA3100000000000000000001 /* PasteControllerProtocol.swift */,
@@ -338,6 +345,7 @@
 				BA150DA7FBE4819BF19B7F31 /* Assets.xcassets */,
 				94A422E6E59C06BEAFB4BFA2 /* Info.plist */,
 				D3E59B58F324A9600EE4325C /* Paste.entitlements */,
+				BC5100000000000000000006 /* Paste.local.entitlements */,
 			);
 			path = Paste;
 			sourceTree = "<group>";
@@ -376,6 +384,7 @@
 		AA320000000000000000000A /* PasteTests */ = {
 			isa = PBXGroup;
 			children = (
+				BC5100000000000000000002 /* WindowPlacementTests.swift */,
 				AA3200000000000000000011 /* TestHelpers.swift */,
 				AA3200000000000000000019 /* AppCoreStub.swift */,
 				AA3200000000000000000012 /* PinyinTests.swift */,
@@ -559,6 +568,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC5100000000000000000003 /* WindowPlacement.swift in Sources */,
 				3967DE16A769A2E33CCD9692 /* AboutView.swift in Sources */,
 				316668E91BB14E5E55142438 /* AppCore.swift in Sources */,
 				AA3100000000000000000006 /* PasteController.swift in Sources */,
@@ -621,6 +631,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BC5100000000000000000004 /* WindowPlacement.swift in Sources */,
+				BC5100000000000000000005 /* WindowPlacementTests.swift in Sources */,
 				AA3200000000000000000021 /* ClipboardStore.swift in Sources */,
 				AA3200000000000000000022 /* ClipboardCapturePipeline.swift in Sources */,
 				AA3200000000000000000023 /* PasteControllerProtocol.swift in Sources */,
@@ -697,11 +709,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 41;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 5Q5QT76MJU;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -730,7 +743,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Paste/Paste.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "$(PASTE_APP_ENTITLEMENTS)";
+				PASTE_APP_ENTITLEMENTS = Paste/Paste.local.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 41;
 				INFOPLIST_FILE = Paste/Info.plist;
@@ -782,11 +796,12 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 41;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 5Q5QT76MJU;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -822,7 +837,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Paste/Paste.entitlements;
+				CODE_SIGN_ENTITLEMENTS = "$(PASTE_APP_ENTITLEMENTS)";
+				PASTE_APP_ENTITLEMENTS = Paste/Paste.local.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 41;
 				INFOPLIST_FILE = Paste/Info.plist;
@@ -844,8 +860,9 @@
 		AA310000000000000000000E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 5Q5QT76MJU;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.eli.Paste.cli;
@@ -860,8 +877,9 @@
 		AA310000000000000000000F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 5Q5QT76MJU;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.eli.Paste.cli;
@@ -876,8 +894,9 @@
 		AA3200000000000000000005 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 5Q5QT76MJU;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				OTHER_LDFLAGS = (
@@ -896,8 +915,9 @@
 		AA3200000000000000000006 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 5Q5QT76MJU;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				OTHER_LDFLAGS = (

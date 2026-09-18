@@ -13,15 +13,16 @@ enum PreferencesMetrics {
 
 /// Vertical stack used by each settings tab.
 struct PreferencesForm<Content: View>: View {
+    var rowSpacing: CGFloat = PreferencesMetrics.rowSpacing
     @ViewBuilder var content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: PreferencesMetrics.rowSpacing) {
+        VStack(alignment: .leading, spacing: rowSpacing) {
             content
         }
         .padding(.horizontal, PreferencesMetrics.contentPaddingH)
         .padding(.vertical, PreferencesMetrics.contentPaddingV)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 }
 

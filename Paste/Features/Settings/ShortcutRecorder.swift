@@ -165,12 +165,13 @@ private struct LocalShortcutRecorder: View {
 
 struct ShortcutsSettingsView: View {
     var body: some View {
-        PreferencesForm {
+        PreferencesForm(rowSpacing: 10) {
             PreferencesRow(label: "Show Paste") {
                 KeyboardShortcuts.Recorder(for: .toggleClipboard)
             }
 
             PreferencesDivider()
+                .padding(.vertical, 6)
 
             PreferencesSectionHeader(title: "Palette")
 
@@ -182,6 +183,7 @@ struct ShortcutsSettingsView: View {
             shortcutRow("Show in Finder", shortcut: .showInFinder)
 
             PreferencesDivider()
+                .padding(.vertical, 6)
 
             PreferencesSectionHeader(title: "Pinned Images")
 

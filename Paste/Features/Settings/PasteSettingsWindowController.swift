@@ -11,6 +11,9 @@ final class PasteSettingsWindowController {
     private let activationPolicy: ActivationPolicyCoordinator
     private var controller: SettingsWindowController?
     private var closeObserver: NSObjectProtocol?
+    private var geometryObservers: [NSObjectProtocol] = []
+    private var updatingGeometry = false
+    private var pendingGeometryUpdate: DispatchWorkItem?
     private var commandWCloseView: CommandWCloseView?
     private var builtLanguage: AppLanguage?
     private var languageObserver: AnyCancellable?
@@ -47,6 +50,7 @@ final class PasteSettingsWindowController {
         activationPolicy.acquire("settings")
         NSApp.activate(ignoringOtherApps: true)
         controller.showWindow(nil)
+        constrainWindowGeometry()
         DispatchQueue.main.async {
             controller.window?.makeKeyAndOrderFront(nil)
         }
@@ -90,10 +94,15 @@ final class PasteSettingsWindowController {
         attachCloseObserverIfNeeded(to: controller.window)
         installCommandWCloseViewIfNeeded(on: controller.window)
         controller.showWindow(nil)
+        constrainWindowGeometry()
         controller.window?.makeKeyAndOrderFront(nil)
     }
 
     private func tearDownController() {
+        pendingGeometryUpdate?.cancel()
+        pendingGeometryUpdate = nil
+        geometryObservers.forEach { NotificationCenter.default.removeObserver($0) }
+        geometryObservers.removeAll()
         if let closeObserver {
             NotificationCenter.default.removeObserver(closeObserver)
             self.closeObserver = nil
@@ -136,7 +145,60 @@ final class PasteSettingsWindowController {
             localized: "Paste Settings",
             locale: locale
         )
+        observeGeometry(of: controller.settingsWindow)
         return controller
+    }
+
+    private func observeGeometry(of window: NSWindow) {
+        let center = NotificationCenter.default
+        for name in [NSWindow.didResizeNotification, NSWindow.didMoveNotification,
+                     NSWindow.didChangeScreenNotification, NSWindow.didChangeScreenProfileNotification] {
+            geometryObservers.append(center.addObserver(forName: name, object: window, queue: .main) {
+                [weak self] _ in
+                MainActor.assumeIsolated { self?.scheduleGeometryUpdate() }
+            })
+        }
+        geometryObservers.append(center.addObserver(
+            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.scheduleGeometryUpdate() }
+        })
+    }
+
+    private func scheduleGeometryUpdate() {
+        guard !updatingGeometry else { return }
+        pendingGeometryUpdate?.cancel()
+        let update = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            // Do not pin a window to its old screen while the user is dragging across displays.
+            if NSEvent.pressedMouseButtons & 1 != 0 {
+                self.scheduleGeometryUpdate()
+            } else {
+                self.constrainWindowGeometry()
+            }
+        }
+        pendingGeometryUpdate = update
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: update)
+    }
+
+    private func constrainWindowGeometry() {
+        guard !updatingGeometry, let controller, let window = controller.window,
+            let screen = window.screen ?? NSScreen.main else { return }
+        updatingGeometry = true
+        defer { updatingGeometry = false }
+        let bounds = screen.visibleFrame.insetBy(dx: 16, dy: 16)
+        let maximumHeight = WindowPlacement.settingsHeight(visibleHeight: screen.visibleFrame.height)
+        window.maxSize = NSSize(width: max(1, bounds.width), height: maximumHeight)
+        // Refresh the library's cache as well: tab transitions use their own preferred sizes.
+        for item in controller.tabViewController.tabViewItems {
+            controller.tabViewController.cacheTabViewSize(for: item)
+        }
+        var frame = window.frame
+        let height = min(frame.height, maximumHeight)
+        frame.origin.y = frame.maxY - height
+        frame.size.height = height
+        frame = WindowPlacement.clamp(frame, to: bounds)
+        if window.frame != frame { window.setFrame(frame, display: true) }
     }
 
     private func selectedTab() -> SettingsTab? {
@@ -212,6 +274,21 @@ private final class SwiftUISettingsPaneController: SettingsPaneViewController {
     private let paneHeight: CGFloat
     private static let paneWidth: CGFloat = 480
 
+    override var preferredPaneSize: NSSize? {
+        get {
+            let window = tabViewController?.settingsWindow
+            let screen = window?.screen ?? NSScreen.main
+            let available = screen?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
+            // Ask AppKit for actual title/toolbar chrome rather than assuming a titlebar height.
+            let chrome = window?.frameRect(forContentRect: .zero).height ?? 100
+            return NSSize(
+                width: min(Self.paneWidth, max(1, available.width - 32)),
+                height: min(paneHeight, max(1,
+                    WindowPlacement.settingsHeight(visibleHeight: available.height) - chrome)))
+        }
+        set { /* The preferred size is derived from the current screen, never a cached frame. */ }
+    }
+
     init(
         tab: SettingsTab,
         @ViewBuilder content: () -> some View
@@ -234,10 +311,22 @@ private final class SwiftUISettingsPaneController: SettingsPaneViewController {
     }
 
     override func loadView() {
+        let scroll = NSScrollView()
+        scroll.hasVerticalScroller = true
+        scroll.hasHorizontalScroller = false
+        scroll.autohidesScrollers = true
+        scroll.drawsBackground = false
         let hosting = NSHostingView(rootView: rootView)
-        hosting.sizingOptions = []
-        view = hosting
-        preferredPaneSize = NSSize(width: Self.paneWidth, height: paneHeight)
+        hosting.isFlipped = true
+        hosting.sizingOptions = [.intrinsicContentSize]
+        hosting.translatesAutoresizingMaskIntoConstraints = false
+        scroll.documentView = hosting
+        NSLayoutConstraint.activate([
+            hosting.leadingAnchor.constraint(equalTo: scroll.contentView.leadingAnchor),
+            hosting.trailingAnchor.constraint(equalTo: scroll.contentView.trailingAnchor),
+            hosting.topAnchor.constraint(equalTo: scroll.contentView.topAnchor),
+        ])
+        view = scroll
         view.setFrameSize(preferredPaneSize ?? .zero)
     }
 }
@@ -250,6 +339,7 @@ private struct SettingsPaneLocalizedRoot<Content: View>: View {
     var body: some View {
         content
             .environment(\.locale, settings.language.locale)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .frame(maxWidth: .infinity, alignment: .top)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
